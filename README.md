@@ -21,7 +21,9 @@ Transformar o MONETO em uma plataforma completa de gestão financeira, que não 
 
 ## 🖥️ Preview
 
-> *(adicione aqui futuramente prints do sistema ou link do deploy)*
+<img width="2557" height="1276" alt="image" src="https://github.com/user-attachments/assets/b8aeddef-43af-458c-b291-b727ff8cea9a" />
+<img width="2559" height="1283" alt="image" src="https://github.com/user-attachments/assets/347fdc63-619f-400d-a358-0c47bdd2f299" />
+<img width="2559" height="1266" alt="image" src="https://github.com/user-attachments/assets/cc7eccda-d873-454c-a95d-2b5363e4f3aa" />
 
 ---
 
