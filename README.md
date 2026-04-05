@@ -1,16 +1,105 @@
-# React + Vite
+# 💰 MONETO
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Sistema de gestão financeira pessoal com foco em simplicidade, organização e experiência do usuário.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Sobre o projeto
 
-## React Compiler
+O **MONETO** nasceu de uma necessidade real: encontrar uma forma mais prática, visual e intuitiva de organizar as finanças no dia a dia.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Após testar diversas soluções existentes, percebi que muitas eram complexas demais ou não incentivavam o uso contínuo.  
+A partir disso, decidi desenvolver minha própria solução, focada em usabilidade e clareza.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🎯 Objetivo
+
+Transformar o MONETO em uma plataforma completa de gestão financeira, que não apenas organiza dados, mas também auxilia o usuário a entender melhor seus hábitos financeiros.
+
+---
+
+## 🖥️ Preview
+
+> *(adicione aqui futuramente prints do sistema ou link do deploy)*
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+- ⚛️ React  
+- ⚡ Vite  
+- 🟨 JavaScript  
+- 🎨 CSS (design system próprio)
+
+---
+
+## 📌 Funcionalidades (Front-end)
+
+✔ Dashboard com visão geral financeira  
+✔ Gerenciamento de transações  
+✔ Metas financeiras com acompanhamento de progresso  
+✔ Relatórios analíticos  
+✔ Calendário financeiro  
+✔ Sistema de notificações  
+✔ Interface integrada com assistente inteligente  
+
+---
+
+## 🚧 Em desenvolvimento
+
+- 🔐 Autenticação de usuários  
+- 🗄️ Integração com banco de dados  
+- 🔄 API REST para persistência de dados  
+- 📊 Armazenamento real de transações  
+
+---
+
+## 💡 Funcionalidades planejadas
+
+### 📱 Integração com WhatsApp
+
+O objetivo é permitir o registro de transações de forma simples e natural:
+
+> “gastei 50 reais com Uber”
+
+E o sistema automaticamente:
+
+- registra a transação  
+- classifica a categoria  
+- atualiza saldo  
+- recalcula relatórios  
+- ajusta os insights financeiros  
+
+---
+
+### 📊 Insights inteligentes
+
+- Análise de comportamento financeiro  
+- Sugestões de economia  
+- Apoio à tomada de decisão  
+
+---
+
+## 🧠 Aprendizado
+
+Este projeto foi desenvolvido com base nos meus estudos e evolução prática, utilizando referências de mercado e apoio de ferramentas de IA.
+
+O foco é continuar evoluindo o sistema enquanto aprofundo meu conhecimento em desenvolvimento fullstack.
+
+---
+
+## ⚙️ Como rodar o projeto
+
+```bash
+# clonar repositório
+git clone https://github.com/VictorFLeal/moneto-frontend.git
+
+# acessar pasta
+cd moneto-frontend
+
+# instalar dependências
+npm install
+
+# rodar projeto
+npm run dev
