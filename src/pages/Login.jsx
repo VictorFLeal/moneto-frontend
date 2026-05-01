@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { login } from '../services/api'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm]     = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
@@ -20,7 +21,24 @@ export default function Login() {
     const e = validate()
     if (Object.keys(e).length) { setErrors(e); return }
     setLoading(true)
-    setTimeout(() => navigate('/dashboard'), 1800)
+    try {
+      const res = await login({
+        email: form.email,
+        password: form.password,
+      })
+      localStorage.setItem('moneto_token', res.data.token)
+      localStorage.setItem('moneto_user', JSON.stringify({
+        nome:   res.data.nome,
+        email:  res.data.email,
+        perfil: res.data.perfil,
+        plano:  res.data.plano,
+      }))
+      navigate('/dashboard')
+    } catch (err) {
+      setErrors({ email: 'E-mail ou senha incorretos.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handle(field, val) {
@@ -37,7 +55,9 @@ export default function Login() {
         <div style={styles.blob2} />
         <div style={styles.grid} />
 
-        <div style={styles.logo}>Mon<span style={{ color: 'var(--accent)' }}>.</span>eto</div>
+        <div style={styles.logo}>
+          Mon<span style={{ color: 'var(--accent)' }}>.</span>eto
+        </div>
 
         <div>
           <h2 style={styles.leftTitle}>
@@ -46,13 +66,15 @@ export default function Login() {
             em um lugar só
           </h2>
           <p style={styles.leftSub}>
-            Lance gastos pelo WhatsApp, visualize insights no dashboard e tome decisões financeiras com confiança.
+            Lance gastos pelo WhatsApp, visualize insights no dashboard
+            e tome decisões financeiras com confiança.
           </p>
         </div>
 
         <div style={styles.testimonial}>
           <p style={styles.testimonialText}>
-            "Em 3 meses usando o Moneto, consegui economizar R$ 800 por mês só identificando gastos que nem percebia."
+            "Em 3 meses usando o Moneto, consegui economizar R$ 800 por mês
+            só identificando gastos que nem percebia."
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={styles.avatar}>RS</div>
@@ -68,10 +90,11 @@ export default function Login() {
       {/* RIGHT */}
       <div style={styles.right}>
         <div style={styles.formBox}>
+
           <div style={{ marginBottom: 32 }}>
             <h1 style={styles.formTitle}>Bem-vindo de volta 👋</h1>
             <p style={{ color: 'var(--muted)', fontSize: 14 }}>
-              Não tem conta?{' '}
+              Não tens conta?{' '}
               <Link to="/register" style={{ color: 'var(--blue-l)', fontWeight: 600 }}>
                 Criar conta grátis
               </Link>
@@ -79,6 +102,7 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit}>
+
             {/* Email */}
             <div style={styles.field}>
               <label style={styles.label}>E-MAIL</label>
@@ -107,7 +131,11 @@ export default function Login() {
                   value={form.password}
                   onChange={e => handle('password', e.target.value)}
                 />
-                <button type="button" style={styles.eyeBtn} onClick={() => setShowPw(v => !v)}>
+                <button
+                  type="button"
+                  style={styles.eyeBtn}
+                  onClick={() => setShowPw(v => !v)}
+                >
                   {showPw ? '🙈' : '👁'}
                 </button>
               </div>
@@ -120,15 +148,28 @@ export default function Login() {
                 <input type="checkbox" style={{ accentColor: 'var(--blue)' }} />
                 Lembrar de mim
               </label>
-              <a href="#" style={{ fontSize: 14, color: 'var(--blue-l)', fontWeight: 500 }}>Esqueci a senha</a>
+              <a href="#" style={{ fontSize: 14, color: 'var(--blue-l)', fontWeight: 500 }}>
+                Esqueci a senha
+              </a>
             </div>
 
-            <button type="submit" style={{ ...styles.btnPrimary, opacity: loading ? 0.7 : 1 }} disabled={loading}>
+            <button
+              type="submit"
+              style={{ ...styles.btnPrimary, opacity: loading ? 0.7 : 1 }}
+              disabled={loading}
+            >
               {loading ? 'Entrando...' : 'Entrar na conta'}
             </button>
+
           </form>
 
-          <div style={styles.divider}><span style={styles.dividerText}>ou continue com</span></div>
+          <div style={styles.divider}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span style={{ color: 'var(--muted)', fontSize: 12, padding: '0 12px', whiteSpace: 'nowrap' }}>
+              ou continue com
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
 
           <button style={styles.btnGoogle}>
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -139,6 +180,7 @@ export default function Login() {
             </svg>
             Entrar com Google
           </button>
+
         </div>
       </div>
     </div>
@@ -146,90 +188,30 @@ export default function Login() {
 }
 
 const styles = {
-  page: { display: 'grid', gridTemplateColumns: '1fr 1fr', height: '100vh' },
-  left: {
-    position: 'relative', overflow: 'hidden',
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-    padding: '48px 56px',
-    background: 'linear-gradient(160deg, #060d1f 0%, #03070f 100%)',
-  },
-  blob1: {
-    position: 'absolute', width: 500, height: 500, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(26,75,204,0.4) 0%, transparent 70%)',
-    top: -100, left: -100, filter: 'blur(100px)', pointerEvents: 'none',
-  },
-  blob2: {
-    position: 'absolute', width: 400, height: 400, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(74,240,196,0.1) 0%, transparent 70%)',
-    bottom: -80, right: -80, filter: 'blur(100px)', pointerEvents: 'none',
-  },
-  grid: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    backgroundImage: 'linear-gradient(rgba(91,139,245,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(91,139,245,0.04) 1px, transparent 1px)',
-    backgroundSize: '48px 48px',
-  },
-  logo: {
-    position: 'relative', zIndex: 2,
-    fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800,
-  },
-  leftTitle: {
-    position: 'relative', zIndex: 2,
-    fontFamily: 'Syne, sans-serif', fontSize: 36, fontWeight: 800,
-    letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 16,
-  },
-  grad: {
-    background: 'linear-gradient(135deg, #93b4fa, #4af0c4)',
-    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-  },
-  leftSub: { position: 'relative', zIndex: 2, color: 'var(--muted)', fontSize: 15, lineHeight: 1.7 },
-  testimonial: {
-    position: 'relative', zIndex: 2,
-    background: 'rgba(10,21,48,0.75)', border: '1px solid var(--border)',
-    borderRadius: 16, padding: '20px 24px', backdropFilter: 'blur(12px)',
-  },
-  testimonialText: { fontSize: 14, lineHeight: 1.65, marginBottom: 14, color: 'var(--white)' },
-  avatar: {
-    width: 36, height: 36, borderRadius: '50%',
-    background: 'linear-gradient(135deg, var(--blue), var(--blue-l))',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontWeight: 700, fontSize: 13,
-  },
-  right: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '48px 56px', background: 'var(--bg)',
-  },
-  formBox: { width: '100%', maxWidth: 400 },
-  formTitle: { fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, letterSpacing: -1, marginBottom: 8 },
-  field: { marginBottom: 18 },
-  label: { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 7 },
-  inputWrap: { position: 'relative' },
-  inputIcon: { position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', fontSize: 15, pointerEvents: 'none' },
-  input: {
-    width: '100%', background: 'rgba(10,21,48,0.8)', border: '1px solid var(--border)',
-    borderRadius: 10, padding: '12px 14px 12px 40px', color: 'var(--white)',
-    fontSize: 15, outline: 'none',
-  },
-  inputError: { borderColor: 'rgba(240,106,106,0.6)' },
-  eyeBtn: {
-    position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)',
-    background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, color: 'var(--muted)',
-  },
-  errorMsg: { fontSize: 12, color: 'var(--red)', marginTop: 5, display: 'block' },
-  btnPrimary: {
-    width: '100%', background: 'var(--blue)', color: '#fff',
-    border: 'none', borderRadius: 10, padding: '14px', fontSize: 15,
-    fontWeight: 600, cursor: 'pointer', marginBottom: 18,
-    boxShadow: '0 0 28px rgba(46,99,232,0.35)',
-  },
-  divider: { display: 'flex', alignItems: 'center', gap: 14, margin: '4px 0 16px' },
-  dividerText: { color: 'var(--muted)', fontSize: 12, whiteSpace: 'nowrap', padding: '0 4px',
-    borderTop: 'none',
-    background: 'linear-gradient(var(--border), var(--border)) no-repeat center / 100% 1px',
-  },
-  btnGoogle: {
-    width: '100%', background: 'transparent', border: '1px solid var(--border)',
-    borderRadius: 10, padding: '12px', color: 'var(--white)', fontSize: 14,
-    fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', gap: 10,
-  },
+  page:          { display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '100vh' },
+  left:          { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px 56px', background: 'linear-gradient(160deg, #060d1f 0%, #03070f 100%)' },
+  blob1:         { position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,75,204,0.4) 0%, transparent 70%)', top: -100, left: -100, filter: 'blur(100px)', pointerEvents: 'none' },
+  blob2:         { position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74,240,196,0.1) 0%, transparent 70%)', bottom: -80, right: -80, filter: 'blur(100px)', pointerEvents: 'none' },
+  grid:          { position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(91,139,245,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(91,139,245,0.04) 1px, transparent 1px)', backgroundSize: '48px 48px' },
+  logo:          { position: 'relative', zIndex: 2, fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800 },
+  leftTitle:     { position: 'relative', zIndex: 2, fontFamily: 'Syne, sans-serif', fontSize: 36, fontWeight: 800, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 16 },
+  grad:          { background: 'linear-gradient(135deg, #93b4fa, #4af0c4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
+  leftSub:       { position: 'relative', zIndex: 2, color: 'var(--muted)', fontSize: 15, lineHeight: 1.7 },
+  testimonial:   { position: 'relative', zIndex: 2, background: 'rgba(10,21,48,0.75)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 24px', backdropFilter: 'blur(12px)' },
+  testimonialText:{ fontSize: 14, lineHeight: 1.65, marginBottom: 14, color: 'var(--white)' },
+  avatar:        { width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue), var(--blue-l))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13 },
+  right:         { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 56px', background: 'var(--bg)' },
+  formBox:       { width: '100%', maxWidth: 400 },
+  formTitle:     { fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, letterSpacing: -1, marginBottom: 8 },
+  field:         { marginBottom: 18 },
+  label:         { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 7 },
+  inputWrap:     { position: 'relative' },
+  inputIcon:     { position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', fontSize: 15, pointerEvents: 'none' },
+  input:         { width: '100%', background: 'rgba(10,21,48,0.8)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px 12px 40px', color: 'var(--white)', fontSize: 15, outline: 'none' },
+  inputError:    { borderColor: 'rgba(240,106,106,0.6)' },
+  eyeBtn:        { position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, color: 'var(--muted)' },
+  errorMsg:      { fontSize: 12, color: 'var(--red)', marginTop: 5, display: 'block' },
+  btnPrimary:    { width: '100%', background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 10, padding: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', marginBottom: 18, boxShadow: '0 0 28px rgba(46,99,232,0.35)' },
+  divider:       { display: 'flex', alignItems: 'center', margin: '4px 0 16px' },
+  btnGoogle:     { width: '100%', background: 'transparent', border: '1px solid var(--border)', borderRadius: 10, padding: 12, color: 'var(--white)', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 },
 }
