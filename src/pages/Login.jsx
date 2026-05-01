@@ -34,7 +34,7 @@ export default function Login() {
         plano:  res.data.plano,
       }))
       navigate('/dashboard')
-    } catch (err) {
+    } catch {
       setErrors({ email: 'E-mail ou senha incorretos.' })
     } finally {
       setLoading(false)
@@ -94,7 +94,7 @@ export default function Login() {
           <div style={{ marginBottom: 32 }}>
             <h1 style={styles.formTitle}>Bem-vindo de volta 👋</h1>
             <p style={{ color: 'var(--muted)', fontSize: 14 }}>
-              Não tens conta?{' '}
+              Não tem conta?{' '}
               <Link to="/register" style={{ color: 'var(--blue-l)', fontWeight: 600 }}>
                 Criar conta grátis
               </Link>
@@ -148,9 +148,9 @@ export default function Login() {
                 <input type="checkbox" style={{ accentColor: 'var(--blue)' }} />
                 Lembrar de mim
               </label>
-              <a href="#" style={{ fontSize: 14, color: 'var(--blue-l)', fontWeight: 500 }}>
-                Esqueci a senha
-              </a>
+              <Link to="/forgot-password" style={{ fontSize: 14, color: 'var(--blue-l)', fontWeight: 500 }}>
+                  Esqueci a senha
+              </Link>
             </div>
 
             <button

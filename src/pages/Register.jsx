@@ -146,7 +146,7 @@ export default function Register() {
       }))
       setDone(true)
       setTimeout(() => navigate('/dashboard'), 2000)
-    } catch (err) {
+    } catch {
       alert('Erro ao criar conta. O e-mail pode já estar em uso.')
     } finally {
       setLoading(false)
@@ -198,7 +198,7 @@ export default function Register() {
             Criar conta grátis ✨
           </h1>
           <p style={{ color: 'var(--muted)', fontSize: 14 }}>
-            Já tens conta?{' '}
+            Já tem conta?{' '}
             <Link to="/login" style={{ color: 'var(--blue-l)', fontWeight: 600 }}>Fazer login</Link>
           </p>
         </div>

@@ -36,7 +36,7 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
       })
       onClose()
       if (onSuccess) onSuccess()
-    } catch (err) {
+    } catch {
       alert('Erro ao salvar transação. Verifica se o backend está a correr.')
     } finally {
       setLoading(false)
