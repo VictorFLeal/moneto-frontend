@@ -207,7 +207,7 @@ export default function Settings() {
       try {
         const [settingsRes, plansRes] = await Promise.all([
           api.get('/settings'),
-          api.get('/public/plans').catch(() => ({ data: [] })),
+          api.get('/plans').catch(() => ({ data: [] })),
         ])
         setData(settingsRes.data)
         setPlans(plansRes.data)
