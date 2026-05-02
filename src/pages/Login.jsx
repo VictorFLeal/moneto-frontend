@@ -56,7 +56,7 @@ export default function Login() {
         <div style={styles.grid} />
 
         <div style={styles.logo}>
-          Mon<span style={{ color: 'var(--accent)' }}>.</span>eto
+          Moneto
         </div>
 
         <div>

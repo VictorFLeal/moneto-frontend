@@ -50,7 +50,7 @@ export default function Onboarding() {
       <div style={styles.blob2} />
 
       <div style={styles.wrap}>
-        <div style={styles.logo}>Mon<span style={{ color: 'var(--accent)' }}>.</span>eto</div>
+        <div style={styles.logo}>Moneto</div>
 
         <div style={styles.header}>
           <h1 style={styles.title}>Qual é o teu perfil financeiro?</h1>
