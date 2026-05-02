@@ -21,7 +21,7 @@ export default function Sidebar({ open, onClose }) {
     { path: '/dashboard/debts',         icon: '💸', label: 'Sair das Dívidas', badge: 'Pro', locked: !isPro },
     { path: '/dashboard/business',      icon: '🏢', label: 'Modo Empresa',     badge: 'Business', locked: !isBusiness },
     { section: 'Conta' },
-    { path: '/dashboard/notifications', icon: '🔔', label: 'Notificações', badge: '3' },
+    { path: '/dashboard/notifications', icon: '🔔', label: 'Notificações', badge: null },
     { path: '/dashboard/settings',      icon: '⚙️', label: 'Configurações' },
   ]
 

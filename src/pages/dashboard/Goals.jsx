@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getGoals, createGoal, updateGoal, deleteGoal } from '../../services/api'
+import { getGoals, createGoal, deleteGoal } from '../../services/api'
 
 export default function Goals() {
   const [goals, setGoals]     = useState([])
@@ -36,7 +36,7 @@ export default function Goals() {
       setNewGoal({ titulo: '', icone: '🎯', valorMeta: '', prazo: '' })
       setShowAdd(false)
       load()
-    } catch (err) {
+    } catch {
       alert('Erro ao criar meta.')
     }
   }
@@ -46,7 +46,7 @@ export default function Goals() {
     try {
       await deleteGoal(id)
       load()
-    } catch (err) {
+    } catch {
       alert('Erro ao apagar meta.')
     }
   }
