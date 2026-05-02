@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../services/api'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -136,7 +137,7 @@ export default function Login() {
                   style={styles.eyeBtn}
                   onClick={() => setShowPw(v => !v)}
                 >
-                  {showPw ? '🙈' : '👁'}
+                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && <span style={styles.errorMsg}>{errors.password}</span>}
