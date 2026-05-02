@@ -37,6 +37,7 @@ export const createTransaction = (data) => api.post('/transactions', data)
 export const updateTransaction = (id, data) => api.put(`/transactions/${id}`, data)
 export const deleteTransaction = (id) => api.delete(`/transactions/${id}`)
 export const getSummary = () => api.get('/transactions/summary')
+export const getPlans = () => api.get('/public/plans')
 
 export const getGoals = () => api.get('/goals')
 export const createGoal = (data) => api.post('/goals', data)
