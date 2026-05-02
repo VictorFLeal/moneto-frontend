@@ -19,9 +19,10 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('moneto_token')
       localStorage.removeItem('moneto_user')
+      localStorage.removeItem('moneto_refresh')
       window.location.href = '/login'
     }
 
@@ -29,25 +30,29 @@ api.interceptors.response.use(
   }
 )
 
-export const login = (data) => api.post('/auth/login', data)
-export const register = (data) => api.post('/auth/register', data)
+export const login = data => api.post('/auth/login', data)
+export const register = data => api.post('/auth/register', data)
+
+export const getPlans = () => api.get('/plans')
+
+export const getSettings = () => api.get('/settings')
+export const updateSettings = data => api.put('/settings', data)
 
 export const getTransactions = () => api.get('/transactions')
-export const createTransaction = (data) => api.post('/transactions', data)
+export const createTransaction = data => api.post('/transactions', data)
 export const updateTransaction = (id, data) => api.put(`/transactions/${id}`, data)
-export const deleteTransaction = (id) => api.delete(`/transactions/${id}`)
+export const deleteTransaction = id => api.delete(`/transactions/${id}`)
 export const getSummary = () => api.get('/transactions/summary')
-export const getPlans = () => api.get('/public/plans')
 
 export const getGoals = () => api.get('/goals')
-export const createGoal = (data) => api.post('/goals', data)
+export const createGoal = data => api.post('/goals', data)
 export const updateGoal = (id, data) => api.put(`/goals/${id}`, data)
-export const deleteGoal = (id) => api.delete(`/goals/${id}`)
+export const deleteGoal = id => api.delete(`/goals/${id}`)
 
 export const getDebts = () => api.get('/debts')
-export const createDebt = (data) => api.post('/debts', data)
+export const createDebt = data => api.post('/debts', data)
 export const updateDebt = (id, data) => api.put(`/debts/${id}`, data)
-export const deleteDebt = (id) => api.delete(`/debts/${id}`)
+export const deleteDebt = id => api.delete(`/debts/${id}`)
 
 export const getDashboardSummary = () => api.get('/dashboard/summary')
 
