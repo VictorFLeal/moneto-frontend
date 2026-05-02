@@ -1,7 +1,24 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
+function getSaudacao() {
+  const hora = new Date().getHours()
+
+  if (hora < 12) return 'Bom dia'
+  if (hora < 18) return 'Boa tarde'
+  return 'Boa noite'
+}
+
+function getUserName() {
+  try {
+    const user = JSON.parse(localStorage.getItem('moneto_user'))
+    return user?.nome?.split(' ')[0] || 'Usuário'
+  } catch {
+    return 'Usuário'
+  }
+}
+
 const pageMeta = {
-  '/dashboard':               { title: 'Dashboard',              sub: 'Bom dia, Victor 👋' },
+  '/dashboard':               { title: 'Dashboard',              dynamicSub: true },
   '/dashboard/chat':          { title: 'Falar com a IA',         sub: 'Assistente financeiro inteligente' },
   '/dashboard/transactions':  { title: 'Transações',             sub: 'Histórico completo' },
   '/dashboard/goals':         { title: 'Metas financeiras',      sub: 'Acompanha o progresso' },
@@ -16,7 +33,13 @@ const pageMeta = {
 export default function Header({ onAddTx, onMenuClick }) {
   const location = useLocation()
   const navigate = useNavigate()
+
+  const userName = getUserName()
   const meta = pageMeta[location.pathname] || { title: 'Moneto', sub: '' }
+
+  const sub = meta.dynamicSub
+    ? `${getSaudacao()}, ${userName} 👋`
+    : meta.sub
 
   return (
     <header style={styles.header}>
@@ -24,16 +47,19 @@ export default function Header({ onAddTx, onMenuClick }) {
         <button style={styles.menuBtn} onClick={onMenuClick}>☰</button>
         <div>
           <div style={styles.title}>{meta.title}</div>
-          <div style={styles.sub}>{meta.sub}</div>
+          <div style={styles.sub}>{sub}</div>
         </div>
       </div>
+
       <div style={styles.right}>
         <div style={styles.iconBtn} onClick={() => navigate('/dashboard/notifications')}>
           🔔<div style={styles.notifDot} />
         </div>
+
         <div style={styles.iconBtn} onClick={onAddTx}>➕</div>
+
         <button style={styles.btn} onClick={onAddTx}>
-          <span style={styles.btnText}>Nova transação</span>
+          <span className="header-btn-text">Nova transação</span>
         </button>
       </div>
 
@@ -68,5 +94,4 @@ const styles = {
   iconBtn:  { width: 36, height: 36, borderRadius: 9, background: 'var(--bg3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, position: 'relative' },
   notifDot: { position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', border: '1.5px solid var(--bg)' },
   btn:      { background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  btnText:  { className: 'header-btn-text' },
 }
