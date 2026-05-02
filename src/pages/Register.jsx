@@ -164,19 +164,23 @@ function Input({ type = 'text', value, onChange, eye, onEye, showPw }) {
         }}
       />
 
-      {eye && (
+            {eye && (
         <button
           type="button"
           onClick={onEye}
           style={{
             position: 'absolute',
-            right: 10,
+            right: 12,
             top: '50%',
             transform: 'translateY(-50%)',
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: '#aaa'
+            color: 'var(--muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
           }}
         >
           {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
