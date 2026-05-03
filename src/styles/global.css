@@ -34,3 +34,80 @@ input, select, textarea { font-family: 'DM Sans', sans-serif; }
   :root { --header-h: 56px; }
   .hide-mobile { display: none !important; }
 }
+
+/* ========================= */
+/* RESPONSIVIDADE MONETO */
+/* ========================= */
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  main,
+  .main,
+  .content,
+  .dashboard,
+  .dashboard-container,
+  .dashboard-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    overflow-x: hidden !important;
+  }
+
+  .stats-grid,
+  .cards-grid,
+  .dashboard-cards,
+  .summary-cards,
+  .overview-cards {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .dashboard-grid,
+  .content-grid,
+  .sections-grid,
+  .analytics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .card,
+  .stat-card,
+  .summary-card,
+  .dashboard-card,
+  .transaction-card,
+  .insight-card {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .sidebar {
+    display: none !important;
+  }
+
+  h1 {
+    font-size: 26px !important;
+  }
+
+  h2 {
+    font-size: 20px !important;
+  }
+
+  p,
+  span,
+  button,
+  input {
+    max-width: 100%;
+  }
+}

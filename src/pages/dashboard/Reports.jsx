@@ -40,8 +40,15 @@ export default function Reports() {
   const [transactions, setTransactions] = useState([])
   const [activeMonth, setActiveMonth] = useState(now.getMonth())
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
   useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    window.addEventListener('resize', handleResize)
+
     async function load() {
       try {
         const res = await getTransactions()
@@ -54,6 +61,8 @@ export default function Reports() {
     }
 
     load()
+
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const filtered = useMemo(() => {
@@ -141,6 +150,227 @@ export default function Reports() {
     })
   }
 
+  const styles = {
+    loading: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '40vh',
+      flexDirection: 'column',
+      gap: 12,
+    },
+    page: {
+      width: '100%',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+    },
+    tabs: {
+      display: 'flex',
+      gap: 3,
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: 4,
+      marginBottom: 20,
+      width: isMobile ? '100%' : 'fit-content',
+      flexWrap: 'wrap',
+    },
+    tab: {
+      padding: isMobile ? '7px 0' : '7px 16px',
+      borderRadius: 7,
+      fontSize: 13,
+      cursor: 'pointer',
+      color: 'var(--muted)',
+      flex: isMobile ? '1 0 20%' : 'unset',
+      textAlign: 'center',
+    },
+    tabActive: {
+      background: 'var(--blue)',
+      color: '#fff',
+      fontWeight: 600,
+    },
+    g4: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)',
+      gap: 16,
+      marginBottom: 20,
+    },
+    g2: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      gap: 16,
+    },
+    statCard: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: '18px 20px',
+      minWidth: 0,
+      overflow: 'hidden',
+    },
+    statIcon: {
+      fontSize: 20,
+      marginBottom: 8,
+      opacity: 0.6,
+    },
+    statLabel: {
+      fontSize: 11,
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: 'var(--muted)',
+      marginBottom: 6,
+    },
+    statValue: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: isMobile ? 20 : 22,
+      fontWeight: 800,
+      letterSpacing: -1,
+      wordBreak: 'break-word',
+    },
+    card: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? 16 : 24,
+      minWidth: 0,
+      overflow: 'hidden',
+    },
+    sectionTitle: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 15,
+      fontWeight: 700,
+    },
+    evolutionHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: 5,
+      fontSize: 13,
+      gap: 10,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    evolutionValues: {
+      display: 'flex',
+      gap: isMobile ? 8 : 16,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    progBar: {
+      height: 6,
+      background: 'rgba(91,139,245,0.1)',
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    catRow: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '34px 1fr auto' : '34px 1fr 2fr 90px 35px',
+      alignItems: 'center',
+      gap: 10,
+      padding: '10px 0',
+      borderBottom: '1px solid rgba(91,139,245,0.07)',
+    },
+    catIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 15,
+      flexShrink: 0,
+    },
+    catName: {
+      fontSize: 13,
+      minWidth: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    catBar: {
+      height: 6,
+      background: 'rgba(91,139,245,0.1)',
+      borderRadius: 3,
+      overflow: 'hidden',
+      display: isMobile ? 'none' : 'block',
+    },
+    catValue: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 13,
+      fontWeight: 700,
+      textAlign: 'right',
+      whiteSpace: 'nowrap',
+    },
+    catPct: {
+      fontSize: 12,
+      color: 'var(--muted)',
+      textAlign: 'right',
+      display: isMobile ? 'none' : 'block',
+    },
+    legendWrap: {
+      display: 'flex',
+      gap: 16,
+      marginTop: 10,
+      flexWrap: 'wrap',
+    },
+    legendAccent: {
+      fontSize: 12,
+      color: 'var(--accent)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+    },
+    legendRed: {
+      fontSize: 12,
+      color: 'var(--red)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+    },
+    legendDot: {
+      width: 10,
+      height: 3,
+      display: 'inline-block',
+      borderRadius: 2,
+    },
+    empty: {
+      textAlign: 'center',
+      padding: '36px 0',
+      color: 'var(--muted)',
+      fontSize: 13,
+    },
+    actions: {
+      display: 'flex',
+      justifyContent: isMobile ? 'stretch' : 'flex-end',
+      gap: 10,
+      marginTop: 20,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    btnGhost: {
+      background: 'transparent',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: '9px 18px',
+      color: 'var(--white)',
+      fontSize: 13,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+    btnPrimary: {
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 9,
+      padding: '9px 18px',
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+  }
+
   if (loading) {
     return (
       <div style={styles.loading}>
@@ -151,7 +381,7 @@ export default function Reports() {
   }
 
   return (
-    <div>
+    <div style={styles.page}>
       <div style={styles.tabs}>
         {months.map(m => (
           <div
@@ -222,9 +452,9 @@ export default function Reports() {
 
               return (
                 <div key={row.m} style={{ marginBottom: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
+                  <div style={styles.evolutionHeader}>
                     <span style={{ color: 'var(--muted)' }}>{row.m}</span>
-                    <div style={{ display: 'flex', gap: 16 }}>
+                    <div style={styles.evolutionValues}>
                       <span style={{ color: 'var(--accent)' }}>+{money(row.income)}</span>
                       <span style={{ color: 'var(--red)' }}>−{money(row.expense)}</span>
                     </div>
@@ -255,7 +485,7 @@ export default function Reports() {
               )
             })}
 
-            <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+            <div style={styles.legendWrap}>
               <span style={styles.legendAccent}>
                 <span style={{ ...styles.legendDot, background: 'var(--accent)' }} /> Receitas
               </span>
@@ -276,7 +506,7 @@ export default function Reports() {
               categories.map(c => (
                 <div key={c.name} style={styles.catRow}>
                   <div style={{ ...styles.catIcon, background: c.color + '22' }}>{c.icon}</div>
-                  <div style={{ flex: 1, fontSize: 13 }}>{c.name}</div>
+                  <div style={styles.catName}>{c.name}</div>
 
                   <div style={styles.catBar}>
                     <div style={{ height: '100%', width: `${c.pct}%`, background: c.color, borderRadius: 3 }} />
@@ -291,38 +521,10 @@ export default function Reports() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+      <div style={styles.actions}>
         <button style={styles.btnGhost}>📋 Exportar CSV</button>
         <button style={styles.btnPrimary}>📄 Gerar PDF</button>
       </div>
     </div>
   )
-}
-
-const styles = {
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '40vh', flexDirection: 'column', gap: 12 },
-  tabs: { display: 'flex', gap: 3, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, marginBottom: 20, width: 'fit-content', flexWrap: 'wrap' },
-  tab: { padding: '7px 16px', borderRadius: 7, fontSize: 13, cursor: 'pointer', color: 'var(--muted)' },
-  tabActive: { background: 'var(--blue)', color: '#fff', fontWeight: 600 },
-  g4: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 },
-  g2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
-  statCard: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px' },
-  statIcon: { fontSize: 20, marginBottom: 8, opacity: 0.6 },
-  statLabel: { fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 },
-  statValue: { fontFamily: 'Syne, sans-serif', fontSize: 22, fontWeight: 800, letterSpacing: -1 },
-  card: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 24 },
-  sectionTitle: { fontFamily: 'Syne, sans-serif', fontSize: 15, fontWeight: 700 },
-  progBar: { height: 6, background: 'rgba(91,139,245,0.1)', borderRadius: 3, overflow: 'hidden' },
-  progFill: { height: '100%', borderRadius: 3 },
-  catRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid rgba(91,139,245,0.07)' },
-  catIcon: { width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 },
-  catBar: { flex: 2, height: 6, background: 'rgba(91,139,245,0.1)', borderRadius: 3, overflow: 'hidden', margin: '0 12px' },
-  catValue: { fontFamily: 'Syne, sans-serif', fontSize: 13, fontWeight: 700, minWidth: 90, textAlign: 'right' },
-  catPct: { fontSize: 12, color: 'var(--muted)', minWidth: 35, textAlign: 'right' },
-  legendAccent: { fontSize: 12, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 5 },
-  legendRed: { fontSize: 12, color: 'var(--red)', display: 'flex', alignItems: 'center', gap: 5 },
-  legendDot: { width: 10, height: 3, display: 'inline-block', borderRadius: 2 },
-  empty: { textAlign: 'center', padding: '36px 0', color: 'var(--muted)', fontSize: 13 },
-  btnGhost: { background: 'transparent', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 18px', color: 'var(--white)', fontSize: 13, cursor: 'pointer' },
-  btnPrimary: { background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 }

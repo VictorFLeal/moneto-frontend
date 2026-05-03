@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTransactions, createTransaction } from '../../services/api'
+import { getTransactions } from '../../services/api'
 
 const categories = ['Todas', '🛒 Alimentação', '🚗 Transporte', '🏠 Moradia', '🎬 Lazer', '💊 Saúde', '💼 Trabalho']
 const periods    = ['Semana', 'Mês', 'Ano']
@@ -10,8 +10,15 @@ export default function Transactions({ onAddTx }) {
   const [cat, setCat]                   = useState('Todas')
   const [period, setPeriod]             = useState('Mês')
   const [loading, setLoading]           = useState(true)
+  const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768)
 
   useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    window.addEventListener('resize', handleResize)
+
     async function load() {
       try {
         const res = await getTransactions()
@@ -22,7 +29,10 @@ export default function Transactions({ onAddTx }) {
         setLoading(false)
       }
     }
+
     load()
+
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const filtered = transactions.filter(t => {
@@ -52,6 +62,181 @@ export default function Transactions({ onAddTx }) {
     return catIcon[key]
   }
 
+  const styles = {
+    page: {
+      width: '100%',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+    },
+    g3: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)',
+      gap: 16,
+      marginBottom: 20,
+    },
+    statCard: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? '18px 20px' : '18px 20px',
+      position: 'relative',
+      minWidth: 0,
+      overflow: 'hidden',
+    },
+    statIcon: {
+      fontSize: 20,
+      marginBottom: 10,
+      opacity: 0.6,
+    },
+    statLabel: {
+      fontSize: 11,
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: 'var(--muted)',
+      marginBottom: 6,
+    },
+    statValue: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: isMobile ? 22 : 24,
+      fontWeight: 800,
+      letterSpacing: -1,
+      whiteSpace: 'nowrap',
+    },
+    filters: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '240px 170px auto 140px',
+      gap: 10,
+      alignItems: 'center',
+      marginBottom: 16,
+      width: '100%',
+    },
+    searchInput: {
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: '9px 13px',
+      color: 'var(--white)',
+      fontSize: 14,
+      outline: 'none',
+      width: '100%',
+      minWidth: 0,
+    },
+    select: {
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: '9px 13px',
+      color: 'var(--white)',
+      fontSize: 14,
+      outline: 'none',
+      appearance: 'none',
+      width: '100%',
+      minWidth: 0,
+    },
+    tabs: {
+      display: 'flex',
+      gap: 3,
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: 3,
+      width: isMobile ? '100%' : 'fit-content',
+    },
+    tab: {
+      padding: '6px 14px',
+      borderRadius: 7,
+      fontSize: 13,
+      cursor: 'pointer',
+      color: 'var(--muted)',
+      flex: isMobile ? 1 : 'unset',
+      textAlign: 'center',
+    },
+    tabActive: {
+      background: 'var(--blue)',
+      color: '#fff',
+      fontWeight: 600,
+    },
+    btnAdd: {
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 9,
+      padding: '9px 18px',
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+    card: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? '8px 14px' : '8px 16px',
+      width: '100%',
+      maxWidth: '100%',
+      minWidth: 0,
+      overflow: 'hidden',
+    },
+    txItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: isMobile ? 10 : 14,
+      padding: '12px 0',
+      minWidth: 0,
+    },
+    txIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 17,
+      flexShrink: 0,
+    },
+    txInfo: {
+      flex: 1,
+      minWidth: 0,
+    },
+    txName: {
+      fontSize: 13,
+      fontWeight: 600,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    txCat: {
+      fontSize: 11,
+      color: 'var(--muted)',
+      marginTop: 2,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    txRight: {
+      textAlign: 'right',
+      flexShrink: 0,
+      maxWidth: isMobile ? 105 : 'none',
+    },
+    txAmount: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 14,
+      fontWeight: 700,
+      whiteSpace: 'nowrap',
+    },
+    txDate: {
+      fontSize: 11,
+      color: 'var(--muted)',
+      marginTop: 2,
+      whiteSpace: 'nowrap',
+    },
+    empty: {
+      textAlign: 'center',
+      padding: '48px 24px',
+    },
+  }
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '40vh', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 28 }}>⏳</div>
@@ -60,7 +245,7 @@ export default function Transactions({ onAddTx }) {
   )
 
   return (
-    <div>
+    <div style={styles.page}>
       <div style={styles.g3}>
         {[
           { label: 'Total de entradas', value: income,  color: 'var(--accent)', icon: '📥' },
@@ -84,14 +269,23 @@ export default function Transactions({ onAddTx }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+
         <select style={styles.select} value={cat} onChange={e => setCat(e.target.value)}>
           {categories.map(c => <option key={c}>{c}</option>)}
         </select>
+
         <div style={styles.tabs}>
           {periods.map(p => (
-            <div key={p} style={{ ...styles.tab, ...(period === p ? styles.tabActive : {}) }} onClick={() => setPeriod(p)}>{p}</div>
+            <div
+              key={p}
+              style={{ ...styles.tab, ...(period === p ? styles.tabActive : {}) }}
+              onClick={() => setPeriod(p)}
+            >
+              {p}
+            </div>
           ))}
         </div>
+
         <button style={styles.btnAdd} onClick={onAddTx}>➕ Adicionar</button>
       </div>
 
@@ -115,11 +309,13 @@ export default function Transactions({ onAddTx }) {
             return (
               <div key={t.id} style={{ ...styles.txItem, borderBottom: i < filtered.length - 1 ? '1px solid rgba(91,139,245,0.07)' : 'none' }}>
                 <div style={{ ...styles.txIcon, background: style.bg }}>{style.icon}</div>
-                <div style={{ flex: 1 }}>
+
+                <div style={styles.txInfo}>
                   <div style={styles.txName}>{t.descricao}</div>
                   <div style={styles.txCat}>{t.categoria} · {t.origem === 'whatsapp' ? '📱 WhatsApp' : '✏️ Manual'}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
+
+                <div style={styles.txRight}>
                   <div style={{ ...styles.txAmount, color: isNeg ? 'var(--red)' : 'var(--accent)' }}>
                     {isNeg ? '−' : '+'}R${Math.abs(Number(t.valor)).toFixed(2).replace('.', ',')}
                   </div>
@@ -132,27 +328,4 @@ export default function Transactions({ onAddTx }) {
       </div>
     </div>
   )
-}
-
-const styles = {
-  g3:          { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20 },
-  statCard:    { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', position: 'relative' },
-  statIcon:    { fontSize: 20, marginBottom: 10, opacity: 0.6 },
-  statLabel:   { fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 },
-  statValue:   { fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, letterSpacing: -1 },
-  filters:     { display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' },
-  searchInput: { background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 13px', color: 'var(--white)', fontSize: 14, outline: 'none', maxWidth: 240, width: '100%' },
-  select:      { background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 13px', color: 'var(--white)', fontSize: 14, outline: 'none', appearance: 'none' },
-  tabs:        { display: 'flex', gap: 3, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: 3 },
-  tab:         { padding: '6px 14px', borderRadius: 7, fontSize: 13, cursor: 'pointer', color: 'var(--muted)' },
-  tabActive:   { background: 'var(--blue)', color: '#fff', fontWeight: 600 },
-  btnAdd:      { marginLeft: 'auto', background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  card:        { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '8px 16px' },
-  txItem:      { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0' },
-  txIcon:      { width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 },
-  txName:      { fontSize: 13, fontWeight: 600 },
-  txCat:       { fontSize: 11, color: 'var(--muted)', marginTop: 2 },
-  txAmount:    { fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 700 },
-  txDate:      { fontSize: 11, color: 'var(--muted)', marginTop: 2 },
-  empty:       { textAlign: 'center', padding: '48px 24px' },
 }

@@ -1,14 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../services/api'
 import { Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [form, setForm]     = useState({ email: '', password: '' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   function validate() {
     const e = {}
@@ -20,20 +30,27 @@ export default function Login() {
   async function handleSubmit(ev) {
     ev.preventDefault()
     const e = validate()
-    if (Object.keys(e).length) { setErrors(e); return }
+    if (Object.keys(e).length) {
+      setErrors(e)
+      return
+    }
+
     setLoading(true)
+
     try {
       const res = await login({
         email: form.email,
         password: form.password,
       })
+
       localStorage.setItem('moneto_token', res.data.token)
       localStorage.setItem('moneto_user', JSON.stringify({
-        nome:   res.data.nome,
-        email:  res.data.email,
+        nome: res.data.nome,
+        email: res.data.email,
         perfil: res.data.perfil,
-        plano:  res.data.plano,
+        plano: res.data.plano,
       }))
+
       navigate('/dashboard')
     } catch {
       setErrors({ email: 'E-mail ou senha incorretos.' })
@@ -47,10 +64,243 @@ export default function Login() {
     setErrors(e => ({ ...e, [field]: null }))
   }
 
+  const styles = {
+    page: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      minHeight: '100vh',
+      width: '100%',
+      overflowX: 'hidden',
+    },
+    left: {
+      position: 'relative',
+      overflow: 'hidden',
+      display: isMobile ? 'none' : 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: '48px 56px',
+      background: 'linear-gradient(160deg, #060d1f 0%, #03070f 100%)',
+    },
+    blob1: {
+      position: 'absolute',
+      width: 500,
+      height: 500,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(26,75,204,0.4) 0%, transparent 70%)',
+      top: -100,
+      left: -100,
+      filter: 'blur(100px)',
+      pointerEvents: 'none',
+    },
+    blob2: {
+      position: 'absolute',
+      width: 400,
+      height: 400,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(74,240,196,0.1) 0%, transparent 70%)',
+      bottom: -80,
+      right: -80,
+      filter: 'blur(100px)',
+      pointerEvents: 'none',
+    },
+    grid: {
+      position: 'absolute',
+      inset: 0,
+      pointerEvents: 'none',
+      backgroundImage: 'linear-gradient(rgba(91,139,245,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(91,139,245,0.04) 1px, transparent 1px)',
+      backgroundSize: '48px 48px',
+    },
+    logo: {
+      position: 'relative',
+      zIndex: 2,
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 26,
+      fontWeight: 800,
+    },
+    mobileLogo: {
+      display: isMobile ? 'block' : 'none',
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 28,
+      fontWeight: 800,
+      marginBottom: 28,
+      textAlign: 'center',
+    },
+    leftTitle: {
+      position: 'relative',
+      zIndex: 2,
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 36,
+      fontWeight: 800,
+      letterSpacing: -1.5,
+      lineHeight: 1.1,
+      marginBottom: 16,
+    },
+    grad: {
+      background: 'linear-gradient(135deg, #93b4fa, #4af0c4)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+    leftSub: {
+      position: 'relative',
+      zIndex: 2,
+      color: 'var(--muted)',
+      fontSize: 15,
+      lineHeight: 1.7,
+    },
+    testimonial: {
+      position: 'relative',
+      zIndex: 2,
+      background: 'rgba(10,21,48,0.75)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: '20px 24px',
+      backdropFilter: 'blur(12px)',
+    },
+    testimonialText: {
+      fontSize: 14,
+      lineHeight: 1.65,
+      marginBottom: 14,
+      color: 'var(--white)',
+    },
+    avatar: {
+      width: 36,
+      height: 36,
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, var(--blue), var(--blue-l))',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 700,
+      fontSize: 13,
+      flexShrink: 0,
+    },
+    right: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? '28px 18px' : '48px 56px',
+      background: 'var(--bg)',
+      minHeight: isMobile ? '100vh' : 'auto',
+    },
+    formBox: {
+      width: '100%',
+      maxWidth: 400,
+      minWidth: 0,
+    },
+    formHeader: {
+      marginBottom: isMobile ? 26 : 32,
+      textAlign: isMobile ? 'center' : 'left',
+    },
+    formTitle: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: isMobile ? 25 : 28,
+      fontWeight: 800,
+      letterSpacing: -1,
+      marginBottom: 8,
+    },
+    field: {
+      marginBottom: 18,
+    },
+    label: {
+      display: 'block',
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      color: 'var(--muted)',
+      marginBottom: 7,
+    },
+    inputWrap: {
+      position: 'relative',
+      width: '100%',
+    },
+    inputIcon: {
+      position: 'absolute',
+      left: 13,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      fontSize: 15,
+      pointerEvents: 'none',
+    },
+    input: {
+      width: '100%',
+      boxSizing: 'border-box',
+      background: 'rgba(10,21,48,0.8)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '12px 14px 12px 40px',
+      color: 'var(--white)',
+      fontSize: 15,
+      outline: 'none',
+    },
+    inputError: {
+      borderColor: 'rgba(240,106,106,0.6)',
+    },
+    eyeBtn: {
+      position: 'absolute',
+      right: 13,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 15,
+      color: 'var(--muted)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 0,
+    },
+    errorMsg: {
+      fontSize: 12,
+      color: 'var(--red)',
+      marginTop: 5,
+      display: 'block',
+    },
+    extras: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      marginBottom: 24,
+      gap: 12,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    btnPrimary: {
+      width: '100%',
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: 14,
+      fontSize: 15,
+      fontWeight: 600,
+      cursor: 'pointer',
+      marginBottom: 18,
+      boxShadow: '0 0 28px rgba(46,99,232,0.35)',
+    },
+    divider: {
+      display: 'flex',
+      alignItems: 'center',
+      margin: '4px 0 16px',
+    },
+    btnGoogle: {
+      width: '100%',
+      background: 'transparent',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: 12,
+      color: 'var(--white)',
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+  }
+
   return (
     <div style={styles.page}>
-
-      {/* LEFT */}
       <div style={styles.left}>
         <div style={styles.blob1} />
         <div style={styles.blob2} />
@@ -66,6 +316,7 @@ export default function Login() {
             das suas <span style={styles.grad}>finanças</span><br />
             em um lugar só
           </h2>
+
           <p style={styles.leftSub}>
             Lance gastos pelo WhatsApp, visualize insights no dashboard
             e tome decisões financeiras com confiança.
@@ -77,8 +328,10 @@ export default function Login() {
             "Em 3 meses usando o Moneto, consegui economizar R$ 800 por mês
             só identificando gastos que nem percebia."
           </p>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={styles.avatar}>RS</div>
+
             <div>
               <div style={{ color: '#fbbf24', fontSize: 12, marginBottom: 2 }}>★★★★★</div>
               <strong style={{ fontSize: 13 }}>Rafael Santos</strong>
@@ -88,13 +341,15 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT */}
       <div style={styles.right}>
         <div style={styles.formBox}>
+          <div style={styles.mobileLogo}>
+            Moneto
+          </div>
 
-          <div style={{ marginBottom: 32 }}>
+          <div style={styles.formHeader}>
             <h1 style={styles.formTitle}>Bem-vindo de volta 👋</h1>
-            <p style={{ color: 'var(--muted)', fontSize: 14 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
               Não tem conta?{' '}
               <Link to="/register" style={{ color: 'var(--blue-l)', fontWeight: 600 }}>
                 Criar conta grátis
@@ -103,10 +358,9 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit}>
-
-            {/* Email */}
             <div style={styles.field}>
               <label style={styles.label}>E-MAIL</label>
+
               <div style={styles.inputWrap}>
                 <span style={styles.inputIcon}>✉</span>
                 <input
@@ -117,12 +371,13 @@ export default function Login() {
                   onChange={e => handle('email', e.target.value)}
                 />
               </div>
+
               {errors.email && <span style={styles.errorMsg}>{errors.email}</span>}
             </div>
 
-            {/* Senha */}
             <div style={styles.field}>
               <label style={styles.label}>SENHA</label>
+
               <div style={styles.inputWrap}>
                 <span style={styles.inputIcon}>🔒</span>
                 <input
@@ -132,6 +387,7 @@ export default function Login() {
                   value={form.password}
                   onChange={e => handle('password', e.target.value)}
                 />
+
                 <button
                   type="button"
                   style={styles.eyeBtn}
@@ -140,17 +396,25 @@ export default function Login() {
                   {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+
               {errors.password && <span style={styles.errorMsg}>{errors.password}</span>}
             </div>
 
-            {/* Extras */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: 'var(--muted)' }}>
+            <div style={styles.extras}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                color: 'var(--muted)',
+              }}>
                 <input type="checkbox" style={{ accentColor: 'var(--blue)' }} />
                 Lembrar de mim
               </label>
+
               <Link to="/forgot-password" style={{ fontSize: 14, color: 'var(--blue-l)', fontWeight: 500 }}>
-                  Esqueci a senha
+                Esqueci a senha
               </Link>
             </div>
 
@@ -161,7 +425,6 @@ export default function Login() {
             >
               {loading ? 'Entrando...' : 'Entrar na conta'}
             </button>
-
           </form>
 
           <div style={styles.divider}>
@@ -181,38 +444,8 @@ export default function Login() {
             </svg>
             Entrar com Google
           </button>
-
         </div>
       </div>
     </div>
   )
-}
-
-const styles = {
-  page:          { display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '100vh' },
-  left:          { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px 56px', background: 'linear-gradient(160deg, #060d1f 0%, #03070f 100%)' },
-  blob1:         { position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,75,204,0.4) 0%, transparent 70%)', top: -100, left: -100, filter: 'blur(100px)', pointerEvents: 'none' },
-  blob2:         { position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74,240,196,0.1) 0%, transparent 70%)', bottom: -80, right: -80, filter: 'blur(100px)', pointerEvents: 'none' },
-  grid:          { position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(91,139,245,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(91,139,245,0.04) 1px, transparent 1px)', backgroundSize: '48px 48px' },
-  logo:          { position: 'relative', zIndex: 2, fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800 },
-  leftTitle:     { position: 'relative', zIndex: 2, fontFamily: 'Syne, sans-serif', fontSize: 36, fontWeight: 800, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 16 },
-  grad:          { background: 'linear-gradient(135deg, #93b4fa, #4af0c4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  leftSub:       { position: 'relative', zIndex: 2, color: 'var(--muted)', fontSize: 15, lineHeight: 1.7 },
-  testimonial:   { position: 'relative', zIndex: 2, background: 'rgba(10,21,48,0.75)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 24px', backdropFilter: 'blur(12px)' },
-  testimonialText:{ fontSize: 14, lineHeight: 1.65, marginBottom: 14, color: 'var(--white)' },
-  avatar:        { width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue), var(--blue-l))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13 },
-  right:         { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 56px', background: 'var(--bg)' },
-  formBox:       { width: '100%', maxWidth: 400 },
-  formTitle:     { fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, letterSpacing: -1, marginBottom: 8 },
-  field:         { marginBottom: 18 },
-  label:         { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 7 },
-  inputWrap:     { position: 'relative' },
-  inputIcon:     { position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', fontSize: 15, pointerEvents: 'none' },
-  input:         { width: '100%', background: 'rgba(10,21,48,0.8)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px 12px 40px', color: 'var(--white)', fontSize: 15, outline: 'none' },
-  inputError:    { borderColor: 'rgba(240,106,106,0.6)' },
-  eyeBtn:        { position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, color: 'var(--muted)' },
-  errorMsg:      { fontSize: 12, color: 'var(--red)', marginTop: 5, display: 'block' },
-  btnPrimary:    { width: '100%', background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 10, padding: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', marginBottom: 18, boxShadow: '0 0 28px rgba(46,99,232,0.35)' },
-  divider:       { display: 'flex', alignItems: 'center', margin: '4px 0 16px' },
-  btnGoogle:     { width: '100%', background: 'transparent', border: '1px solid var(--border)', borderRadius: 10, padding: 12, color: 'var(--white)', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 },
 }

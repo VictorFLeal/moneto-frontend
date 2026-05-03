@@ -58,6 +58,7 @@ export default function Business() {
   const [showAdd, setShowAdd] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
   const [form, setForm] = useState({
     descricao: '',
@@ -68,6 +69,15 @@ export default function Business() {
     vencimento: '',
     status: 'pendente',
   })
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const current = tabs.find(t => t.id === activeTab)
 
@@ -241,6 +251,351 @@ export default function Business() {
     { label: 'Disponível (10%)', val: Number(summary.lucro || 0) * 0.1, color: 'var(--muted)', icon: '💳', pct: 10 },
   ]
 
+  const styles = {
+    page: {
+      width: '100%',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+    },
+    loading: {
+      height: '60vh',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    spinner: {
+      width: 34,
+      height: 34,
+      border: '3px solid rgba(255,255,255,0.08)',
+      borderTopColor: 'var(--blue)',
+      borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite',
+    },
+    toast: {
+      position: 'fixed',
+      right: isMobile ? 12 : 24,
+      bottom: isMobile ? 12 : 24,
+      left: isMobile ? 12 : 'auto',
+      zIndex: 999,
+      padding: '12px 18px',
+      borderRadius: 12,
+      fontSize: 13,
+      fontWeight: 700,
+      backdropFilter: 'blur(10px)',
+    },
+    topHeader: {
+      display: 'flex',
+      alignItems: isMobile ? 'stretch' : 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+      flexWrap: 'wrap',
+      gap: 12,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    businessBadge: {
+      background: 'rgba(240,168,74,0.15)',
+      border: '1px solid rgba(240,168,74,0.3)',
+      borderRadius: 10,
+      padding: '6px 14px',
+      fontSize: 12,
+      fontWeight: 700,
+      color: 'var(--accent2)',
+      width: 'fit-content',
+    },
+    addButton: {
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 9,
+      padding: '9px 18px',
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+    tabs: {
+      display: 'flex',
+      gap: 3,
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 12,
+      padding: 4,
+      marginBottom: 24,
+      flexWrap: 'wrap',
+      width: '100%',
+    },
+    tab: {
+      padding: isMobile ? '8px 10px' : '8px 14px',
+      borderRadius: 8,
+      fontSize: 13,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      transition: 'all 0.18s',
+      flex: isMobile ? '1 0 45%' : 'unset',
+      textAlign: 'center',
+    },
+    card: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? 16 : 22,
+      minWidth: 0,
+      overflow: 'hidden',
+    },
+    sectionTitle: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 15,
+      fontWeight: 700,
+    },
+    formGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      gap: 10,
+      marginTop: 14,
+    },
+    buttonRow: {
+      display: 'flex',
+      gap: 8,
+      marginTop: 12,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    input: {
+      width: '100%',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: '10px 13px',
+      color: 'var(--white)',
+      fontSize: 13,
+      outline: 'none',
+      boxSizing: 'border-box',
+    },
+    primaryBtn: {
+      flex: 1,
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 9,
+      padding: 10,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+    },
+    secondaryBtn: {
+      flex: 1,
+      background: 'transparent',
+      border: '1px solid var(--border)',
+      borderRadius: 9,
+      padding: 10,
+      color: 'var(--white)',
+      fontSize: 13,
+      cursor: 'pointer',
+    },
+    empty: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? 24 : 36,
+      textAlign: 'center',
+    },
+    kpiGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)',
+      gap: 16,
+      marginBottom: 20,
+    },
+    kpiCard: {
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 16,
+      padding: isMobile ? '18px 20px' : '20px 22px',
+      position: 'relative',
+      overflow: 'hidden',
+      minWidth: 0,
+    },
+    kpiGlow: {
+      position: 'absolute',
+      top: -30,
+      right: -30,
+      width: 100,
+      height: 100,
+      borderRadius: '50%',
+      filter: 'blur(40px)',
+      pointerEvents: 'none',
+    },
+    kpiIcon: {
+      position: 'absolute',
+      top: 18,
+      right: 18,
+      fontSize: 22,
+      opacity: 0.5,
+    },
+    kpiLabel: {
+      fontSize: 11,
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: 'var(--muted)',
+      marginBottom: 10,
+    },
+    kpiValue: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: isMobile ? 21 : 24,
+      fontWeight: 800,
+      letterSpacing: -1,
+      wordBreak: 'break-word',
+    },
+    chartRow: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '32px 1fr auto' : '32px 1fr 2fr 90px',
+      alignItems: 'center',
+      gap: 10,
+      padding: '10px 0',
+      borderBottom: '1px solid rgba(91,139,245,0.07)',
+    },
+    chartIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 14,
+      flexShrink: 0,
+    },
+    chartName: {
+      fontSize: 13,
+      minWidth: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    chartBar: {
+      height: 6,
+      background: 'rgba(91,139,245,0.1)',
+      borderRadius: 3,
+      overflow: 'hidden',
+      display: isMobile ? 'none' : 'block',
+    },
+    chartValue: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 13,
+      fontWeight: 700,
+      textAlign: 'right',
+      whiteSpace: 'nowrap',
+    },
+    twoGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      gap: 16,
+    },
+    entryRow: {
+      display: 'flex',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      gap: 12,
+      padding: '12px 0',
+      borderBottom: '1px solid rgba(91,139,245,0.07)',
+      minWidth: 0,
+    },
+    entryIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 10,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 16,
+      flexShrink: 0,
+    },
+    entryInfo: {
+      flex: 1,
+      minWidth: 0,
+    },
+    entryTitle: {
+      fontSize: 13,
+      fontWeight: 600,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    entrySub: {
+      fontSize: 11,
+      color: 'var(--muted)',
+      marginTop: 2,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    entryRight: {
+      textAlign: 'right',
+      flexShrink: 0,
+      maxWidth: isMobile ? 110 : 'none',
+    },
+    entryActions: {
+      display: 'flex',
+      gap: 6,
+      marginTop: 6,
+      flexWrap: 'wrap',
+      justifyContent: 'flex-end',
+    },
+    miniBtn: {
+      background: 'rgba(91,139,245,0.12)',
+      border: '1px solid rgba(91,139,245,0.25)',
+      color: 'var(--blue-l)',
+      borderRadius: 8,
+      padding: '6px 10px',
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: 'pointer',
+    },
+    dangerMiniBtn: {
+      background: 'rgba(240,106,106,0.10)',
+      border: '1px solid rgba(240,106,106,0.25)',
+      color: 'var(--red)',
+      borderRadius: 8,
+      padding: '6px 10px',
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: 'pointer',
+    },
+    dreLine: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    distributionRow: {
+      marginBottom: 16,
+      marginTop: 14,
+    },
+    distributionTop: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: 6,
+      gap: 12,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    aiHeader: {
+      background: 'linear-gradient(135deg, rgba(46,99,232,0.1), rgba(74,240,196,0.05))',
+      border: '1px solid rgba(46,99,232,0.2)',
+      borderRadius: 16,
+      padding: isMobile ? 16 : 22,
+      marginBottom: 16,
+    },
+    insight: {
+      display: 'flex',
+      gap: 14,
+      padding: isMobile ? 16 : 18,
+      background: 'rgba(46,99,232,0.1)',
+      border: '1px solid rgba(46,99,232,0.2)',
+      borderRadius: 14,
+    },
+  }
+
   if (loading) {
     return (
       <div style={styles.loading}>
@@ -252,7 +607,7 @@ export default function Business() {
   }
 
   return (
-    <div>
+    <div style={styles.page}>
       {(error || success) && (
         <div style={{
           ...styles.toast,
@@ -264,40 +619,28 @@ export default function Business() {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div style={styles.topHeader}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <div style={{ background: 'rgba(240,168,74,0.15)', border: '1px solid rgba(240,168,74,0.3)', borderRadius: 10, padding: '6px 14px', fontSize: 12, fontWeight: 700, color: 'var(--accent2)' }}>
-              🏢 MONETO Business
-            </div>
+            <div style={styles.businessBadge}>🏢 MONETO Business</div>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--muted)' }}>{current?.desc}</p>
+          <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>{current?.desc}</p>
         </div>
 
-        <button
-          style={{ background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-          onClick={() => setShowAdd(v => !v)}
-        >
+        <button style={styles.addButton} onClick={() => setShowAdd(v => !v)}>
           + Nova transação empresarial
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 3, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, marginBottom: 24, flexWrap: 'wrap' }}>
+      <div style={styles.tabs}>
         {tabs.map(t => (
           <div
             key={t.id}
             style={{
-              padding: '8px 14px',
-              borderRadius: 8,
-              fontSize: 13,
-              cursor: 'pointer',
+              ...styles.tab,
               color: activeTab === t.id ? '#fff' : 'var(--muted)',
               background: activeTab === t.id ? 'var(--blue)' : 'transparent',
               fontWeight: activeTab === t.id ? 600 : 400,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.18s',
             }}
             onClick={() => setActiveTab(t.id)}
           >
@@ -310,7 +653,7 @@ export default function Business() {
         <div style={{ ...styles.card, marginBottom: 20, background: 'var(--bg3)' }}>
           <div style={styles.sectionTitle}>+ Nova transação empresarial</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
+          <div style={styles.formGrid}>
             <input style={styles.input} placeholder="Descrição" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} />
 
             <select style={styles.input} value={form.tipo} onChange={e => setForm(p => ({ ...p, tipo: e.target.value }))}>
@@ -328,7 +671,7 @@ export default function Business() {
             <input style={styles.input} type="date" value={form.vencimento} onChange={e => setForm(p => ({ ...p, vencimento: e.target.value }))} />
           </div>
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <div style={styles.buttonRow}>
             <button style={styles.secondaryBtn} onClick={() => setShowAdd(false)} disabled={saving}>Cancelar</button>
             <button style={styles.primaryBtn} onClick={saveEntry} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
@@ -348,13 +691,13 @@ export default function Business() {
 
       {activeTab === 'overview' && entries.length > 0 && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+          <div style={styles.kpiGrid}>
             {kpis.map(k => (
-              <div key={k.label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: k.glow, filter: 'blur(40px)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', top: 18, right: 18, fontSize: 22, opacity: 0.5 }}>{k.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 10 }}>{k.label}</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, letterSpacing: -1, color: k.color }}>{k.value}</div>
+              <div key={k.label} style={styles.kpiCard}>
+                <div style={{ ...styles.kpiGlow, background: k.glow }} />
+                <div style={styles.kpiIcon}>{k.icon}</div>
+                <div style={styles.kpiLabel}>{k.label}</div>
+                <div style={{ ...styles.kpiValue, color: k.color }}>{k.value}</div>
                 <div style={{ fontSize: 12, marginTop: 8, color: k.up ? 'var(--accent)' : 'var(--red)' }}>{k.change}</div>
               </div>
             ))}
@@ -369,15 +712,15 @@ export default function Business() {
                 const color = isIn ? 'var(--accent)' : e.tipo === 'IMPOSTO' ? 'var(--accent2)' : 'var(--red)'
 
                 return (
-                  <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid rgba(91,139,245,0.07)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                  <div key={e.id} style={styles.chartRow}>
+                    <div style={{ ...styles.chartIcon, background: color + '22' }}>
                       {isIn ? '💰' : e.tipo === 'IMPOSTO' ? '🏛️' : '📤'}
                     </div>
-                    <div style={{ flex: 1, fontSize: 13 }}>{e.categoria}</div>
-                    <div style={{ flex: 2, height: 6, background: 'rgba(91,139,245,0.1)', borderRadius: 3, overflow: 'hidden', margin: '0 10px' }}>
+                    <div style={styles.chartName}>{e.categoria}</div>
+                    <div style={styles.chartBar}>
                       <div style={{ height: '100%', width: `${(e.valor / max) * 100}%`, background: color, borderRadius: 3 }} />
                     </div>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 13, fontWeight: 700, color, minWidth: 90, textAlign: 'right' }}>
+                    <div style={{ ...styles.chartValue, color }}>
                       {isIn ? '+' : '−'}R${money(e.valor)}
                     </div>
                   </div>
@@ -393,16 +736,16 @@ export default function Business() {
           <div style={styles.sectionTitle}>💸 Fluxo de caixa</div>
           <div style={{ marginTop: 14 }}>
             {entries.map(e => (
-              <EntryRow key={e.id} entry={e} markDone={markDone} removeEntry={removeEntry} saving={saving} />
+              <EntryRow key={e.id} entry={e} markDone={markDone} removeEntry={removeEntry} saving={saving} styles={styles} />
             ))}
           </div>
         </div>
       )}
 
       {activeTab === 'payables' && entries.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ListCard title="📤 Contas a pagar" items={contasPagar} type="out" markDone={markDone} removeEntry={removeEntry} saving={saving} />
-          <ListCard title="📥 Contas a receber" items={contasReceber} type="in" markDone={markDone} removeEntry={removeEntry} saving={saving} />
+        <div style={styles.twoGrid}>
+          <ListCard title="📤 Contas a pagar" items={contasPagar} markDone={markDone} removeEntry={removeEntry} saving={saving} styles={styles} />
+          <ListCard title="📥 Contas a receber" items={contasReceber} markDone={markDone} removeEntry={removeEntry} saving={saving} styles={styles} />
         </div>
       )}
 
@@ -410,10 +753,10 @@ export default function Business() {
         <div style={styles.card}>
           <div style={styles.sectionTitle}>📈 DRE — Demonstrativo de Resultado</div>
 
-          <DreLine label="Receita Bruta" value={summary.receitas} type="in" bold />
-          <DreLine label="Despesas" value={-Math.max(Number(summary.despesas || 0) - Number(summary.impostos || 0), 0)} type="out" />
-          <DreLine label="Impostos" value={-Number(summary.impostos || 0)} type="out" />
-          <DreLine label="Lucro líquido" value={summary.lucro} type={Number(summary.lucro || 0) >= 0 ? 'in' : 'out'} bold separator />
+          <DreLine label="Receita Bruta" value={summary.receitas} type="in" bold styles={styles} />
+          <DreLine label="Despesas" value={-Math.max(Number(summary.despesas || 0) - Number(summary.impostos || 0), 0)} type="out" styles={styles} />
+          <DreLine label="Impostos" value={-Number(summary.impostos || 0)} type="out" styles={styles} />
+          <DreLine label="Lucro líquido" value={summary.lucro} type={Number(summary.lucro || 0) >= 0 ? 'in' : 'out'} bold separator styles={styles} />
         </div>
       )}
 
@@ -427,8 +770,8 @@ export default function Business() {
             </p>
           ) : (
             distribution.map(d => (
-              <div key={d.label} style={{ marginBottom: 16, marginTop: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div key={d.label} style={styles.distributionRow}>
+                <div style={styles.distributionTop}>
                   <span style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 7 }}>{d.icon} {d.label}</span>
                   <span style={{ fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 700, color: d.color }}>R$ {money(d.val)}</span>
                 </div>
@@ -442,12 +785,12 @@ export default function Business() {
       )}
 
       {activeTab === 'taxes' && entries.length > 0 && (
-        <ListCard title="🏛️ Impostos cadastrados" items={impostos} type="tax" markDone={markDone} removeEntry={removeEntry} saving={saving} />
+        <ListCard title="🏛️ Impostos cadastrados" items={impostos} markDone={markDone} removeEntry={removeEntry} saving={saving} styles={styles} />
       )}
 
       {activeTab === 'ai' && entries.length > 0 && (
         <div>
-          <div style={{ ...styles.card, marginBottom: 16, background: 'linear-gradient(135deg, rgba(46,99,232,0.1), rgba(74,240,196,0.05))', border: '1px solid rgba(46,99,232,0.2)' }}>
+          <div style={styles.aiHeader}>
             <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 16, fontWeight: 700 }}>🤖 MONETO IA — Modo Empresa</div>
             <div style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4 }}>Análise baseada nos registros reais da empresa</div>
           </div>
@@ -461,39 +804,43 @@ export default function Business() {
                   ? `Seu lucro atual é de R$ ${money(summary.lucro)}. Considere reservar parte para caixa e reinvestimento.`
                   : `Seu resultado atual está negativo em R$ ${money(Math.abs(Number(summary.lucro || 0)))}. Revise despesas e impostos cadastrados.`
               }
+              styles={styles}
             />
             <Insight
               icon="💡"
               title="Controle de caixa"
               body={`Receitas: R$ ${money(summary.receitas)} | Saídas: R$ ${money(summary.despesas)}. O Moneto recomenda acompanhar vencimentos semanalmente.`}
+              styles={styles}
             />
           </div>
         </div>
       )}
+
+      <style>{spinStyle}</style>
     </div>
   )
 }
 
-function EntryRow({ entry, markDone, removeEntry, saving }) {
+function EntryRow({ entry, markDone, removeEntry, saving, styles }) {
   const isIn = entry.tipo === 'RECEITA'
   const color = isIn ? 'var(--accent)' : entry.tipo === 'IMPOSTO' ? 'var(--accent2)' : 'var(--red)'
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(91,139,245,0.07)' }}>
-      <div style={{ width: 38, height: 38, borderRadius: 10, background: color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+    <div style={styles.entryRow}>
+      <div style={{ ...styles.entryIcon, background: color + '22' }}>
         {isIn ? '📥' : entry.tipo === 'IMPOSTO' ? '🏛️' : '📤'}
       </div>
 
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{entry.descricao}</div>
-        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{entry.categoria} · {entry.status}</div>
+      <div style={styles.entryInfo}>
+        <div style={styles.entryTitle}>{entry.descricao}</div>
+        <div style={styles.entrySub}>{entry.categoria} · {entry.status}</div>
       </div>
 
-      <div style={{ textAlign: 'right' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 700, color }}>
+      <div style={styles.entryRight}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 700, color, whiteSpace: 'nowrap' }}>
           {isIn ? '+' : '−'}R$ {money(entry.valor)}
         </div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+        <div style={styles.entryActions}>
           {entry.status === 'pendente' && (
             <button style={styles.miniBtn} onClick={() => markDone(entry)} disabled={saving}>
               {isIn ? 'Receber' : 'Pagar'}
@@ -506,7 +853,7 @@ function EntryRow({ entry, markDone, removeEntry, saving }) {
   )
 }
 
-function ListCard({ title, items, markDone, removeEntry, saving }) {
+function ListCard({ title, items, markDone, removeEntry, saving, styles }) {
   return (
     <div style={styles.card}>
       <div style={styles.sectionTitle}>{title}</div>
@@ -515,36 +862,35 @@ function ListCard({ title, items, markDone, removeEntry, saving }) {
         <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 12 }}>Nenhum registro encontrado.</p>
       ) : (
         items.map(e => (
-          <EntryRow key={e.id} entry={e} markDone={markDone} removeEntry={removeEntry} saving={saving} />
+          <EntryRow key={e.id} entry={e} markDone={markDone} removeEntry={removeEntry} saving={saving} styles={styles} />
         ))
       )}
     </div>
   )
 }
 
-function DreLine({ label, value, type, bold, separator }) {
+function DreLine({ label, value, type, bold, separator, styles }) {
   return (
     <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
+      ...styles.dreLine,
       padding: separator ? '14px 0 10px' : '10px 0',
       borderTop: separator ? '1px solid var(--border)' : 'none',
     }}>
       <span style={{ fontSize: bold ? 14 : 13, fontWeight: bold ? 700 : 400 }}>{label}</span>
-      <span style={{ fontFamily: 'Syne, sans-serif', fontSize: bold ? 16 : 14, fontWeight: bold ? 800 : 600, color: type === 'in' ? 'var(--accent)' : 'var(--red)' }}>
+      <span style={{ fontFamily: 'Syne, sans-serif', fontSize: bold ? 16 : 14, fontWeight: bold ? 800 : 600, color: type === 'in' ? 'var(--accent)' : 'var(--red)', whiteSpace: 'nowrap' }}>
         {Number(value || 0) >= 0 ? '+' : ''}R$ {money(value)}
       </span>
     </div>
   )
 }
 
-function Insight({ icon, title, body }) {
+function Insight({ icon, title, body, styles }) {
   return (
-    <div style={{ display: 'flex', gap: 14, padding: 18, background: 'rgba(46,99,232,0.1)', border: '1px solid rgba(46,99,232,0.2)', borderRadius: 14 }}>
-      <div style={{ fontSize: 20 }}>{icon}</div>
+    <div style={styles.insight}>
+      <div style={{ fontSize: 20, flexShrink: 0 }}>{icon}</div>
       <div>
         <strong style={{ fontSize: 15, display: 'block', marginBottom: 6, fontFamily: 'Syne, sans-serif' }}>{title}</strong>
-        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>{body}</p>
+        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>{body}</p>
       </div>
     </div>
   )
@@ -553,94 +899,3 @@ function Insight({ icon, title, body }) {
 const spinStyle = `
   @keyframes spin { to { transform: rotate(360deg) } }
 `
-
-const styles = {
-  card: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 22 },
-  sectionTitle: { fontFamily: 'Syne, sans-serif', fontSize: 15, fontWeight: 700 },
-  input: {
-    width: '100%',
-    background: 'var(--bg3)',
-    border: '1px solid var(--border)',
-    borderRadius: 9,
-    padding: '10px 13px',
-    color: 'var(--white)',
-    fontSize: 13,
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
-  primaryBtn: {
-    flex: 1,
-    background: 'var(--blue)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 9,
-    padding: 10,
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  secondaryBtn: {
-    flex: 1,
-    background: 'transparent',
-    border: '1px solid var(--border)',
-    borderRadius: 9,
-    padding: 10,
-    color: 'var(--white)',
-    fontSize: 13,
-    cursor: 'pointer',
-  },
-  miniBtn: {
-    background: 'rgba(91,139,245,0.12)',
-    border: '1px solid rgba(91,139,245,0.25)',
-    color: 'var(--blue-l)',
-    borderRadius: 8,
-    padding: '6px 10px',
-    fontSize: 11,
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  dangerMiniBtn: {
-    background: 'rgba(240,106,106,0.10)',
-    border: '1px solid rgba(240,106,106,0.25)',
-    color: 'var(--red)',
-    borderRadius: 8,
-    padding: '6px 10px',
-    fontSize: 11,
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  empty: {
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    borderRadius: 16,
-    padding: 36,
-    textAlign: 'center',
-  },
-  loading: {
-    height: '60vh',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  spinner: {
-    width: 34,
-    height: 34,
-    border: '3px solid rgba(255,255,255,0.08)',
-    borderTopColor: 'var(--blue)',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
-  toast: {
-    position: 'fixed',
-    right: 24,
-    bottom: 24,
-    zIndex: 999,
-    padding: '12px 18px',
-    borderRadius: 12,
-    fontSize: 13,
-    fontWeight: 700,
-    backdropFilter: 'blur(10px)',
-  },
-}
