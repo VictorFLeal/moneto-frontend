@@ -49,6 +49,12 @@ export const createGoal = data => api.post('/goals', data)
 export const updateGoal = (id, data) => api.put(`/goals/${id}`, data)
 export const deleteGoal = id => api.delete(`/goals/${id}`)
 
+export const getBusinessEntries = () => api.get('/business/entries')
+export const createBusinessEntry = data => api.post('/business/entries', data)
+export const updateBusinessEntry = (id, data) => api.put(`/business/entries/${id}`, data)
+export const deleteBusinessEntry = id => api.delete(`/business/entries/${id}`)
+export const getBusinessSummary = () => api.get('/business/summary')
+
 export const getDebts = () => api.get('/debts')
 export const createDebt = data => api.post('/debts', data)
 export const updateDebt = (id, data) => api.put(`/debts/${id}`, data)
