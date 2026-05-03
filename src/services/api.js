@@ -41,8 +41,6 @@ api.interceptors.response.use(
 // ========================
 export const login = data => api.post('/auth/login', data)
 export const register = data => api.post('/auth/register', data)
-
-// 🔥 NOVO
 export const verifyPhone = data => api.post('/auth/verify-phone', data)
 export const resendCode = telefone =>
   api.post('/auth/resend-code', { telefone })
