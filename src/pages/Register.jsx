@@ -178,7 +178,11 @@ export default function Register() {
       }))
 
       setDone(true)
-      setTimeout(() => navigate('/dashboard'), 2000)
+      setTimeout(() => 
+        navigate('/verify-phone', {
+          state: { telefone: form.telefone }
+        }), 
+      2000)
     } catch (err) {
       console.error('Erro no cadastro:', err)
 
