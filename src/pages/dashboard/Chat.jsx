@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import api, { getTransactions } from '../../services/api'
 
 const suggestions = [
   '📊 Resumo do mês',
@@ -7,25 +8,6 @@ const suggestions = [
   '📈 Como economizar mais?',
   '🔮 Previsão do mês',
 ]
-
-const aiReplies = {
-  'resumo do mês': 'Resumo de Abril 2025\n\nTotal gasto: R$ 1.680\nTotal recebido: R$ 6.500\nSaldo líquido: +R$ 4.820\n\nMaior gasto: Alimentação (R$ 520)\nEsse foi um excelente mês, Victor!',
-  'onde gastei mais?': 'Olhando teus dados de Abril:\n\n1. Alimentação — R$ 520 (31%)\n2. Moradia — R$ 425 (25%)\n3. Lazer — R$ 415 (25%)\n4. Transporte — R$ 320 (19%)\n\nAtenção para o Lazer — subiu 40% em relação a Março!',
-  'estou no orçamento?': 'Analisei todos os teus orçamentos:\n\nAlimentação: R$520 / R$800 (65%) — OK\nTransporte: R$320 / R$400 (80%) — Atenção\nLazer: R$415 / R$500 (83%) — Quase no limite\nMoradia: R$425 / R$1.200 (35%) — Ótimo\n\nNo geral estás bem! Só cuidado com Lazer.',
-  'como economizar mais?': 'Com base no teu histórico:\n\nDelivery — Gastas ~R$180/mês. Reduzindo 50% economizas R$90.\n\nTransporte — Usar apps fora do pico economiza ~R$40/mês.\n\nStreamings — Tens 4 serviços ativos (R$160/mês). Vale revisar!\n\nTotal possível: R$ 290/mês',
-  'previsão do mês': 'Com base nos teus padrões:\n\nGastos estimados: R$ 2.100 – R$ 2.300\nReceitas previstas: R$ 6.500\nEconomia projetada: R$ 4.200 – R$ 4.400\n\nEstás no ritmo certo para a meta de Portugal!',
-}
-
-function getBotReply(msg) {
-  const m = msg.toLowerCase()
-  for (const [key, val] of Object.entries(aiReplies)) {
-    if (m.includes(key)) return val
-  }
-  if (m.includes('gastei') || m.includes('paguei') || m.includes('comprei')) {
-    return 'Anotado! Valor registrado com sucesso.\n\nSe quiser ajustar a categoria ou valor, é só me dizer!'
-  }
-  return 'Entendi a tua pergunta sobre "' + msg + '".\n\nPodes me perguntar sobre: resumo do mês, onde gastaste mais, orçamento, como economizar, ou lançar um gasto como "gastei R$50 no mercado".'
-}
 
 function getNow() {
   return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -43,19 +25,149 @@ export default function Chat() {
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
   const [showSugs, setShowSugs] = useState(true)
+  const [settings, setSettings] = useState(null)
+  const [transactions, setTransactions] = useState([])
   const bottomRef = useRef(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [settingsRes, txRes] = await Promise.all([
+          api.get('/settings'),
+          getTransactions(),
+        ])
+
+        setSettings(settingsRes.data)
+        setTransactions(txRes.data || [])
+      } catch (err) {
+        console.error('Erro ao carregar dados da IA:', err)
+      }
+    }
+
+    loadData()
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, typing])
 
+  function formatMoney(value) {
+    return `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`
+  }
+
+  function getExpenses() {
+    return transactions.filter(t => t.tipo === 'DESPESA')
+  }
+
+  function getIncomes() {
+    return transactions.filter(t => t.tipo === 'RECEITA')
+  }
+
+  function getTotal(list) {
+    return list.reduce((total, t) => total + Number(t.valor || 0), 0)
+  }
+
+  function getBotReply(msg) {
+    const m = msg.toLowerCase()
+    const despesas = getExpenses()
+    const receitas = getIncomes()
+    const totalDespesas = getTotal(despesas)
+    const totalReceitas = getTotal(receitas)
+    const saldo = totalReceitas - totalDespesas
+    const orcamentos = settings?.orcamentos || {}
+
+    if (m.includes('resumo')) {
+      const maiorGasto = despesas.reduce((maior, atual) => {
+        return Number(atual.valor || 0) > Number(maior?.valor || 0) ? atual : maior
+      }, null)
+
+      return `Resumo atual\n\nTotal gasto: ${formatMoney(totalDespesas)}\nTotal recebido: ${formatMoney(totalReceitas)}\nSaldo líquido: ${formatMoney(saldo)}\n\nMaior gasto: ${maiorGasto ? `${maiorGasto.categoria} (${formatMoney(maiorGasto.valor)})` : 'Nenhum gasto registrado ainda.'}`
+    }
+
+    if (m.includes('onde gastei') || m.includes('gastei mais')) {
+      const resumo = {}
+
+      despesas.forEach(t => {
+        resumo[t.categoria] = (resumo[t.categoria] || 0) + Number(t.valor || 0)
+      })
+
+      const ranking = Object.entries(resumo)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+
+      if (ranking.length === 0) {
+        return 'Ainda não encontrei gastos registrados.'
+      }
+
+      return `Onde você mais gastou:\n\n${ranking.map((item, i) => `${i + 1}. ${item[0]} — ${formatMoney(item[1])}`).join('\n')}`
+    }
+
+    if (m.includes('orçamento') || m.includes('orcamento')) {
+      const linhas = Object.entries(orcamentos)
+        .filter(([_, limite]) => Number(limite) > 0)
+        .map(([categoria, limite]) => {
+          const gasto = despesas
+            .filter(t => t.categoria === categoria)
+            .reduce((total, t) => total + Number(t.valor || 0), 0)
+
+          const percentual = Number(limite) > 0
+            ? Math.round((gasto / Number(limite)) * 100)
+            : 0
+
+          let status = 'OK'
+          if (percentual >= 100) status = 'Estourou o limite'
+          else if (percentual >= 90) status = 'Atenção'
+          else if (percentual >= 75) status = 'Quase no limite'
+
+          return `${categoria}: ${formatMoney(gasto)} / ${formatMoney(limite)} (${percentual}%) — ${status}`
+        })
+
+      if (linhas.length === 0) {
+        return 'Ainda não encontrei orçamentos cadastrados. Vai em Configurações > Orçamento e define os limites por categoria.'
+      }
+
+      return `Analisei teus orçamentos atuais:\n\n${linhas.join('\n')}`
+    }
+
+    if (m.includes('economizar')) {
+      const resumo = {}
+
+      despesas.forEach(t => {
+        resumo[t.categoria] = (resumo[t.categoria] || 0) + Number(t.valor || 0)
+      })
+
+      const ranking = Object.entries(resumo).sort((a, b) => b[1] - a[1])
+
+      if (ranking.length === 0) {
+        return 'Ainda não tenho gastos suficientes para sugerir economia.'
+      }
+
+      const [categoria, valor] = ranking[0]
+      const economia = valor * 0.2
+
+      return `Com base nos teus gastos reais, tua maior categoria de despesa é ${categoria}, com ${formatMoney(valor)}.\n\nSe você reduzir 20% nessa categoria, pode economizar aproximadamente ${formatMoney(economia)}.`
+    }
+
+    if (m.includes('previsão') || m.includes('previsao')) {
+      return `Com base nos dados atuais:\n\nReceitas registradas: ${formatMoney(totalReceitas)}\nDespesas registradas: ${formatMoney(totalDespesas)}\nSaldo projetado atual: ${formatMoney(saldo)}`
+    }
+
+    if (m.includes('gastei') || m.includes('paguei') || m.includes('comprei')) {
+      return 'Ainda não estou lançando gastos automaticamente pelo chat. Por enquanto, registra pela tela de transações ou pelo fluxo do WhatsApp.'
+    }
+
+    return 'Agora estou usando teus dados reais. Você pode perguntar sobre resumo do mês, onde gastou mais, orçamento, economia ou previsão.'
+  }
+
   function send(text) {
     const msg = text || input.trim()
     if (!msg) return
+
     setInput('')
     setShowSugs(false)
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: msg, time: getNow() }])
     setTyping(true)
+
     setTimeout(() => {
       setTyping(false)
       setMessages(prev => [...prev, {

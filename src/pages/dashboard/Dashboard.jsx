@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSummary, getTransactions } from '../../services/api'
+import api, { getSummary, getTransactions } from '../../services/api'
 
-const budgets = [
-  { label: '🛒 Alimentação', cur: 520,  max: 800,  color: 'var(--accent)' },
-  { label: '🚗 Transporte',  cur: 320,  max: 400,  color: 'var(--blue-l)' },
-  { label: '🎬 Lazer',       cur: 415,  max: 500,  color: 'var(--accent2)' },
-  { label: '🏠 Moradia',     cur: 425,  max: 1200, color: 'var(--red)' },
-]
+const budgetColors = {
+  Alimentação: 'var(--accent)',
+  Transporte: 'var(--blue-l)',
+  Lazer: 'var(--accent2)',
+  Moradia: 'var(--red)',
+  Saúde: 'var(--red)',
+  Educação: 'var(--blue-l)',
+  Outros: 'var(--muted)',
+}
 
 const catIcon = {
   'Alimentação': { icon: '🛒', bg: 'rgba(74,240,196,0.1)' },
@@ -26,6 +29,7 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
   const [summary, setSummary]           = useState({ receitas: 0, despesas: 0, saldo: 0 })
   const [transactions, setTransactions] = useState([])
+  const [budgets, setBudgets]           = useState([])
   const [loading, setLoading]           = useState(true)
   const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768)
 
@@ -38,12 +42,36 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
     async function load() {
       try {
-        const [sumRes, txRes] = await Promise.all([
+        const [sumRes, txRes, settingsRes] = await Promise.all([
           getSummary(),
           getTransactions(),
+          api.get('/settings'),
         ])
+
+        const allTransactions = txRes.data || []
+        const orcamentos = settingsRes.data?.orcamentos || {}
+
         setSummary(sumRes.data)
-        setTransactions(txRes.data.slice(0, 5))
+        setTransactions(allTransactions.slice(0, 5))
+
+        const budgetsFormatados = Object.entries(orcamentos)
+          .filter(([_, limite]) => Number(limite) > 0)
+          .map(([categoria, limite]) => {
+            const gasto = allTransactions
+              .filter(t => t.tipo === 'DESPESA' && t.categoria === categoria)
+              .reduce((total, t) => total + Number(t.valor || 0), 0)
+
+            const info = catIcon[categoria] || catIcon.Outros
+
+            return {
+              label: `${info.icon} ${categoria}`,
+              cur: gasto,
+              max: Number(limite),
+              color: budgetColors[categoria] || 'var(--blue-l)',
+            }
+          })
+
+        setBudgets(budgetsFormatados)
       } catch (err) {
         console.error('Erro ao carregar dashboard:', err)
       } finally {
@@ -65,6 +93,10 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
   function formatVal(val) {
     return `R$ ${Math.abs(val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+  }
+
+  function formatBudgetVal(val) {
+    return Number(val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   function getTxStyle(cat) {
@@ -366,19 +398,26 @@ export default function Dashboard({ onAddTx = () => {} }) {
             <div style={{ ...styles.sectionHeader, marginBottom: 14 }}>
               <span style={styles.sectionTitle}>📊 Orçamento mensal</span>
             </div>
-            {budgets.map(b => (
-              <div key={b.label} style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, gap: 10 }}>
-                  <span style={{ fontSize: 13 }}>{b.label}</span>
-                  <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-                    R${b.cur} / R${b.max}
-                  </span>
-                </div>
-                <div style={styles.progBar}>
-                  <div style={{ ...styles.progFill, width: `${Math.min((b.cur / b.max) * 100, 100)}%`, background: b.color }} />
-                </div>
+
+            {budgets.length === 0 ? (
+              <div style={{ color: 'var(--muted)', fontSize: 13 }}>
+                Nenhum orçamento cadastrado ainda.
               </div>
-            ))}
+            ) : (
+              budgets.map(b => (
+                <div key={b.label} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, gap: 10 }}>
+                    <span style={{ fontSize: 13 }}>{b.label}</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                      R${formatBudgetVal(b.cur)} / R${formatBudgetVal(b.max)}
+                    </span>
+                  </div>
+                  <div style={styles.progBar}>
+                    <div style={{ ...styles.progFill, width: `${Math.min((b.cur / b.max) * 100, 100)}%`, background: b.color }} />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
         </div>
