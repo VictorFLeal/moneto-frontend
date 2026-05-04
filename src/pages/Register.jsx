@@ -9,9 +9,18 @@ const plans = [
     price: 'R$ 0',
     period: '/ mês',
     tag: 'Gratuito',
-    desc: 'Comece gratuitamente e sinta o valor',
-    features: ['Cadastro de receitas e despesas', 'Dashboard simples', 'Categorias padrão', 'Até 100 lançamentos/mês'],
-    limits: ['Sem IA', 'Sem WhatsApp', 'Sem relatórios avançados'],
+    desc: 'Teste o MONETO e comece a organizar sua vida financeira',
+    features: [
+      'Até 30 lançamentos/mês',
+      'Dashboard simples',
+      'Categorias padrão',
+      'WhatsApp limitado (10 mensagens/mês)'
+    ],
+    limits: [
+      'Sem relatórios',
+      'Sem histórico completo',
+      'Sem IA'
+    ],
     color: '#4af0c4',
     border: 'rgba(74,240,196,0.3)',
     glow: 'rgba(74,240,196,0.08)',
@@ -23,7 +32,13 @@ const plans = [
     period: '/ mês',
     tag: null,
     desc: 'Organize seus gastos com praticidade',
-    features: ['Tudo do Start', 'Integração com WhatsApp', 'Categorias personalizadas', 'Relatórios básicos', 'Histórico ilimitado'],
+    features: [
+      'Tudo do Start',
+      'Integração completa com WhatsApp',
+      'Categorias personalizadas',
+      'Histórico ilimitado',
+      'Relatórios básicos'
+    ],
     limits: [],
     color: '#5b8bf5',
     border: 'rgba(91,139,245,0.3)',
@@ -35,8 +50,14 @@ const plans = [
     price: 'R$ 59,90',
     period: '/ mês',
     tag: '🔥 Mais popular',
-    desc: 'Assuma o controle total com inteligência',
-    features: ['Tudo do Essencial', 'IA do MONETO', 'Análise automática de gastos', 'Sugestões de economia', 'Modo Sair das Dívidas', 'Relatórios avançados'],
+    desc: 'Assuma o controle total da sua vida financeira',
+    features: [
+      'Tudo do Essencial',
+      'IA que analisa seus gastos automaticamente',
+      'Sugestões de economia',
+      'Modo sair das dívidas',
+      'Relatórios avançados'
+    ],
     limits: [],
     color: '#a855f7',
     border: 'rgba(168,85,247,0.4)',
@@ -46,11 +67,18 @@ const plans = [
   {
     id: 'business',
     name: 'MONETO Business',
-    price: 'R$ 89,90',
+    price: 'R$ 99,90',
     period: '/ mês',
     tag: 'Empresarial',
-    desc: 'Gestão financeira completa para empresas',
-    features: ['Tudo do Pro', 'Modo Empresa completo', 'Fluxo de caixa avançado', 'DRE simplificado', 'Exportação Excel/PDF', 'IA empresarial'],
+    desc: 'Gestão financeira profissional para empresas',
+    features: [
+      'Tudo do Pro',
+      'Modo empresa completo',
+      'Fluxo de caixa avançado',
+      'DRE simplificado',
+      'Exportação Excel/PDF',
+      'IA para análise empresarial'
+    ],
     limits: [],
     color: '#f0a84a',
     border: 'rgba(240,168,74,0.3)',
@@ -87,7 +115,7 @@ const MinusIcon = () => (
 export default function Register() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const [selectedPlan, setSelectedPlan] = useState('pro')
+  const [selectedPlan, setSelectedPlan] = useState('start')
   const [form, setForm] = useState({
     nome: '',
     sobrenome: '',
