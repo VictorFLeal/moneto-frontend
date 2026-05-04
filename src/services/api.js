@@ -105,4 +105,12 @@ export const createReserve = data => api.post('/reserves', data)
 export const depositReserve = (id, valor) => api.post(`/reserves/${id}/deposit?valor=${valor}`)
 export const withdrawReserve = (id, valor) => api.post(`/reserves/${id}/withdraw?valor=${valor}`)
 
+// ========================
+// ORÇAMENTOS
+// ========================
+export const getBudgets = () => api.get('/budgets')
+export const createBudget = data => api.post('/budgets', data)
+export const updateBudget = (id, data) => api.put(`/budgets/${id}`, data)
+export const deleteBudget = id => api.delete(`/budgets/${id}`)
+
 export default api

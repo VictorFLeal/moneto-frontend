@@ -45,6 +45,7 @@ export default function DashboardLayout() {
             <Route path="settings"        element={<Settings />} />
             <Route path="debts"           element={<Debts />} />
             <Route path="business"        element={<Business />} />
+            <Route path="reservas"        element={<Reservas />} />
           </Routes>
         </div>
       </div>
