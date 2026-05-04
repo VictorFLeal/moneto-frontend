@@ -236,8 +236,12 @@ export default function Settings() {
   const [active, setActive] = useState('perfil')
   const [data, setData] = useState(null)
   const [plans, setPlans] = useState([])
+  const [budgetItems, setBudgetItems] = useState([])
+  const [newBudgetCategory, setNewBudgetCategory] = useState('')
+  const [newBudgetLimit, setNewBudgetLimit] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingBudget, setSavingBudget] = useState(false)
   const [toast, setToast] = useState({ msg: '', type: 'success' })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
@@ -262,16 +266,28 @@ export default function Settings() {
     setTimeout(() => setToast({ msg: '', type: 'success' }), 3500)
   }
 
+  async function loadBudgets() {
+    try {
+      const res = await api.get('/budgets')
+      setBudgetItems(res.data || [])
+    } catch (err) {
+      console.error('Erro ao carregar orçamentos:', err)
+      setBudgetItems([])
+    }
+  }
+
   useEffect(() => {
     async function load() {
       try {
-        const [settingsRes, plansRes] = await Promise.all([
+        const [settingsRes, plansRes, budgetsRes] = await Promise.all([
           api.get('/settings'),
           api.get('/plans').catch(() => ({ data: [] })),
+          api.get('/budgets').catch(() => ({ data: [] })),
         ])
 
         setData(settingsRes.data)
         setPlans(plansRes.data)
+        setBudgetItems(budgetsRes.data || [])
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
           navigate('/login')
@@ -358,14 +374,92 @@ export default function Settings() {
     }))
   }
 
-  function setBudget(cat, value) {
-    setData(prev => ({
-      ...prev,
-      orcamentos: {
-        ...(prev.orcamentos || {}),
-        [cat]: value,
-      },
-    }))
+  function setBudgetLocal(id, field, value) {
+    setBudgetItems(prev =>
+      prev.map(item =>
+        item.id === id
+          ? { ...item, [field]: value }
+          : item
+      )
+    )
+  }
+
+  async function updateBudgetItem(item) {
+    if (!item?.id) return
+
+    if (!item.categoria || String(item.categoria).trim() === '') {
+      showToast('Categoria não pode ficar vazia.', 'error')
+      await loadBudgets()
+      return
+    }
+
+    if (Number(item.limite) < 0) {
+      showToast('O limite não pode ser negativo.', 'error')
+      await loadBudgets()
+      return
+    }
+
+    try {
+      await api.put(`/budgets/${item.id}`, {
+        categoria: String(item.categoria).trim(),
+        limite: Number(item.limite || 0),
+        icone: item.icone || null,
+      })
+
+      showToast('Orçamento atualizado com sucesso!')
+    } catch (err) {
+      console.error('Erro ao atualizar orçamento:', err)
+      showToast(err.response?.data?.error || 'Erro ao atualizar orçamento.', 'error')
+      await loadBudgets()
+    }
+  }
+
+  async function createBudgetItem() {
+    const categoria = String(newBudgetCategory || '').trim()
+    const limite = Number(newBudgetLimit || 0)
+
+    if (!categoria) {
+      showToast('Informe uma categoria.', 'error')
+      return
+    }
+
+    if (!newBudgetLimit || limite < 0) {
+      showToast('Informe um limite válido.', 'error')
+      return
+    }
+
+    setSavingBudget(true)
+
+    try {
+      await api.post('/budgets', {
+        categoria,
+        limite,
+        icone: null,
+      })
+
+      setNewBudgetCategory('')
+      setNewBudgetLimit('')
+      await loadBudgets()
+      showToast('Orçamento criado com sucesso!')
+    } catch (err) {
+      console.error('Erro ao criar orçamento:', err)
+      showToast(err.response?.data?.error || 'Erro ao criar orçamento.', 'error')
+    } finally {
+      setSavingBudget(false)
+    }
+  }
+
+  async function deleteBudgetItem(id) {
+    if (!window.confirm('Deseja excluir este orçamento?')) return
+
+    try {
+      await api.delete(`/budgets/${id}`)
+      await loadBudgets()
+      showToast('Orçamento excluído com sucesso!')
+    } catch (err) {
+      console.error('Erro ao excluir orçamento:', err)
+      showToast(err.response?.data?.error || 'Erro ao excluir orçamento.', 'error')
+    }
   }
 
   if (loading) return (
@@ -391,7 +485,6 @@ export default function Settings() {
   )
 
   const notif = data?.notificacoes || {}
-  const budgets = data?.orcamentos || {}
   const curPlan = plans.find(p => p.planId === data?.plano)
 
   return (
@@ -662,47 +755,177 @@ export default function Settings() {
               Define o limite de gastos por categoria. Receberás alertas quando atingires 90% do limite.
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {BUDGET_CATS.map((cat, i) => (
-                <div key={cat}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    justifyContent: 'space-between',
-                    padding: '13px 0',
-                    gap: 10,
-                    flexDirection: isMobile ? 'column' : 'row',
-                  }}>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{cat}</div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: isMobile ? '100%' : 'auto' }}>
-                      <span style={{ fontSize: 13, color: 'var(--muted)' }}>R$</span>
-                      <input
-                        type="number"
-                        value={budgets[cat] ?? ''}
-                        onChange={e => setBudget(cat, Number(e.target.value))}
-                        style={{
-                          width: isMobile ? '100%' : 100,
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(91,139,245,0.14)',
-                          borderRadius: 8,
-                          padding: '8px 12px',
-                          color: 'var(--white)',
-                          fontSize: 14,
-                          outline: 'none',
-                          textAlign: 'right',
-                        }}
-                      />
-                      <span style={{ fontSize: 12, color: 'var(--muted)' }}>/mês</span>
-                    </div>
-                  </div>
-                  {i < BUDGET_CATS.length - 1 && <Divider />}
+            <div style={{
+              padding: isMobile ? 14 : 16,
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(91,139,245,0.12)',
+              marginBottom: 20,
+            }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr auto',
+                gap: 10,
+                alignItems: 'end',
+              }}>
+                <div>
+                  <FieldLabel>Categoria</FieldLabel>
+                  <input
+                    list="budget-categories"
+                    value={newBudgetCategory}
+                    onChange={e => setNewBudgetCategory(e.target.value)}
+                    placeholder="Ex: Academia, Pet, Mercado..."
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(91,139,245,0.14)',
+                      borderRadius: 10,
+                      padding: '11px 14px',
+                      color: 'var(--white)',
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                  <datalist id="budget-categories">
+                    {BUDGET_CATS.map(cat => <option key={cat} value={cat} />)}
+                  </datalist>
                 </div>
-              ))}
+
+                <div>
+                  <FieldLabel>Limite mensal</FieldLabel>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>R$</span>
+                    <input
+                      type="number"
+                      value={newBudgetLimit}
+                      onChange={e => setNewBudgetLimit(e.target.value)}
+                      placeholder="0,00"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(91,139,245,0.14)',
+                        borderRadius: 10,
+                        padding: '11px 14px',
+                        color: 'var(--white)',
+                        fontSize: 14,
+                        outline: 'none',
+                        textAlign: isMobile ? 'left' : 'right',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={createBudgetItem}
+                  disabled={savingBudget}
+                  style={{
+                    background: 'var(--blue)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '11px 18px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: savingBudget ? 'not-allowed' : 'pointer',
+                    opacity: savingBudget ? 0.7 : 1,
+                    boxShadow: '0 0 20px rgba(46,99,232,0.25)',
+                    width: isMobile ? '100%' : 'fit-content',
+                  }}
+                >
+                  {savingBudget ? 'Criando...' : '+ Adicionar'}
+                </button>
+              </div>
             </div>
 
-            <div style={{ marginTop: 22 }}>
-              <SaveButton onClick={() => save()} loading={saving} isMobile={isMobile} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {budgetItems.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '34px 20px',
+                  color: 'var(--muted)',
+                  fontSize: 13,
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(91,139,245,0.08)',
+                  borderRadius: 12,
+                }}>
+                  Nenhum orçamento cadastrado ainda. Crie sua primeira categoria acima.
+                </div>
+              ) : (
+                budgetItems.map((budget, i) => (
+                  <div key={budget.id || i}>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr' : '1fr 150px 40px',
+                      alignItems: 'center',
+                      padding: '13px 0',
+                      gap: 10,
+                    }}>
+                      <input
+                        value={budget.categoria ?? ''}
+                        onChange={e => setBudgetLocal(budget.id, 'categoria', e.target.value)}
+                        onBlur={() => updateBudgetItem(budget)}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          background: 'transparent',
+                          border: '1px solid transparent',
+                          borderRadius: 8,
+                          padding: '8px 0',
+                          color: 'var(--white)',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          outline: 'none',
+                        }}
+                      />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                        <span style={{ fontSize: 13, color: 'var(--muted)' }}>R$</span>
+                        <input
+                          type="number"
+                          value={budget.limite ?? ''}
+                          onChange={e => setBudgetLocal(budget.id, 'limite', e.target.value)}
+                          onBlur={() => updateBudgetItem(budget)}
+                          style={{
+                            width: '100%',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(91,139,245,0.14)',
+                            borderRadius: 8,
+                            padding: '8px 12px',
+                            color: 'var(--white)',
+                            fontSize: 14,
+                            outline: 'none',
+                            textAlign: 'right',
+                          }}
+                        />
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>/mês</span>
+                      </div>
+
+                      <button
+                        onClick={() => deleteBudgetItem(budget.id)}
+                        style={{
+                          width: isMobile ? '100%' : 36,
+                          height: 36,
+                          borderRadius: 9,
+                          background: 'rgba(240,106,106,0.08)',
+                          border: '1px solid rgba(240,106,106,0.2)',
+                          color: 'var(--red)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 14,
+                        }}
+                        title="Excluir orçamento"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    {i < budgetItems.length - 1 && <Divider />}
+                  </div>
+                ))
+              )}
             </div>
           </SectionCard>
         )}

@@ -13,6 +13,7 @@ import Settings from '../pages/dashboard/Settings'
 import Debts from '../pages/dashboard/Debts'
 import Business from '../pages/dashboard/Business'
 import TransactionModal from './TransactionModal'
+import Reservas from '../pages/dashboard/Reservas'
 
 export default function DashboardLayout() {
   const [modalOpen, setModalOpen]   = useState(false)
