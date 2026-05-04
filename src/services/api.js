@@ -102,6 +102,8 @@ export const getDashboardSummary = () => api.get('/dashboard/summary')
 // ========================
 export const getReserves = () => api.get('/reserves')
 export const createReserve = data => api.post('/reserves', data)
+export const updateReserve = (id, data) => api.put(`/reserves/${id}`, data)
+export const deleteReserve = id => api.delete(`/reserves/${id}`)
 export const depositReserve = (id, valor) => api.post(`/reserves/${id}/deposit?valor=${valor}`)
 export const withdrawReserve = (id, valor) => api.post(`/reserves/${id}/withdraw?valor=${valor}`)
 

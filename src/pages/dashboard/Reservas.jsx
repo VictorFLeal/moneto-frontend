@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getReserves, createReserve, depositReserve, withdrawReserve } from '../../services/api'
+import { getReserves, createReserve, updateReserve, deleteReserve, depositReserve, withdrawReserve } from '../../services/api'
 
 export default function Reservas() {
   const [reserves, setReserves] = useState([])
@@ -9,6 +9,12 @@ export default function Reservas() {
   const [nome, setNome] = useState('')
   const [categoria, setCategoria] = useState('')
   const [meta, setMeta] = useState('')
+
+  const [editingReserve, setEditingReserve] = useState(null)
+  const [editNome, setEditNome] = useState('')
+  const [editCategoria, setEditCategoria] = useState('')
+  const [editMeta, setEditMeta] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
 
   useEffect(() => {
     function handleResize() {
@@ -55,6 +61,63 @@ export default function Reservas() {
     } catch (err) {
       console.error('Erro ao criar reserva:', err)
       alert('Erro ao criar reserva.')
+    }
+  }
+
+  function openEdit(reserve) {
+    setEditingReserve(reserve)
+    setEditNome(reserve.nome || '')
+    setEditCategoria(reserve.categoria || '')
+    setEditMeta(reserve.meta || '')
+  }
+
+  function closeEdit() {
+    setEditingReserve(null)
+    setEditNome('')
+    setEditCategoria('')
+    setEditMeta('')
+  }
+
+  async function handleUpdate() {
+    if (!editingReserve) return
+
+    if (!editNome.trim() || !editCategoria.trim()) {
+      alert('Preencha o nome e a categoria da reserva.')
+      return
+    }
+
+    setSavingEdit(true)
+
+    try {
+      await updateReserve(editingReserve.id, {
+        id: editingReserve.id,
+        nome: editNome.trim(),
+        categoria: editCategoria.trim(),
+        valorAtual: editingReserve.valorAtual,
+        meta: editMeta ? Number(editMeta) : null,
+      })
+
+      closeEdit()
+      load()
+    } catch (err) {
+      console.error('Erro ao editar reserva:', err)
+      alert('Erro ao editar reserva.')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    const confirmar = window.confirm('Tem certeza que deseja excluir esta reserva?')
+
+    if (!confirmar) return
+
+    try {
+      await deleteReserve(id)
+      load()
+    } catch (err) {
+      console.error('Erro ao excluir reserva:', err)
+      alert('Erro ao excluir reserva.')
     }
   }
 
@@ -327,6 +390,34 @@ export default function Reservas() {
       fontWeight: 700,
       cursor: 'pointer',
     },
+    btnEdit: {
+      width: 34,
+      height: 34,
+      borderRadius: 9,
+      background: 'rgba(46,99,232,0.12)',
+      color: 'var(--blue-l)',
+      border: '1px solid rgba(46,99,232,0.25)',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 13,
+      flexShrink: 0,
+    },
+    btnDeleteIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 9,
+      background: 'rgba(240,106,106,0.08)',
+      color: 'var(--red)',
+      border: '1px solid rgba(240,106,106,0.2)',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 13,
+      flexShrink: 0,
+    },
     empty: {
       textAlign: 'center',
       padding: isMobile ? '28px 16px' : '36px 20px',
@@ -334,6 +425,79 @@ export default function Reservas() {
       background: 'var(--card)',
       border: '1px solid var(--border)',
       borderRadius: 16,
+    },
+    modalOverlay: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.65)',
+      backdropFilter: 'blur(8px)',
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? 14 : 24,
+    },
+    modal: {
+      width: '100%',
+      maxWidth: 520,
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 18,
+      padding: isMobile ? 18 : 24,
+      boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+    },
+    modalHeader: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginBottom: 18,
+    },
+    modalTitle: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 17,
+      fontWeight: 800,
+    },
+    closeBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      color: 'var(--muted)',
+      cursor: 'pointer',
+      fontSize: 15,
+    },
+    modalActions: {
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end',
+      marginTop: 18,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    btnCancel: {
+      background: 'var(--bg3)',
+      color: 'var(--muted)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '10px 18px',
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+    btnSave: {
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: '10px 18px',
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: savingEdit ? 'not-allowed' : 'pointer',
+      opacity: savingEdit ? 0.75 : 1,
+      width: isMobile ? '100%' : 'auto',
+      boxShadow: '0 0 20px rgba(46,99,232,0.25)',
     },
   }
 
@@ -485,6 +649,16 @@ export default function Reservas() {
                       <div style={styles.reserveCat}>{r.categoria}</div>
                     </div>
                   </div>
+
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button style={styles.btnEdit} onClick={() => openEdit(r)} title="Editar reserva">
+                      ✏️
+                    </button>
+
+                    <button style={styles.btnDeleteIcon} onClick={() => handleDelete(r.id)} title="Excluir reserva">
+                      🗑️
+                    </button>
+                  </div>
                 </div>
 
                 <div style={styles.amount}>R$ {format(r.valorAtual)}</div>
@@ -513,6 +687,51 @@ export default function Reservas() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {editingReserve && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>Editar reserva</div>
+              <button style={styles.closeBtn} onClick={closeEdit}>✕</button>
+            </div>
+
+            <div style={styles.inputGroup}>
+              <input
+                style={styles.input}
+                placeholder="Nome da reserva"
+                value={editNome}
+                onChange={e => setEditNome(e.target.value)}
+              />
+
+              <input
+                style={styles.input}
+                placeholder="Categoria"
+                value={editCategoria}
+                onChange={e => setEditCategoria(e.target.value)}
+              />
+
+              <input
+                style={styles.input}
+                type="number"
+                placeholder="Meta opcional"
+                value={editMeta}
+                onChange={e => setEditMeta(e.target.value)}
+              />
+            </div>
+
+            <div style={styles.modalActions}>
+              <button style={styles.btnCancel} onClick={closeEdit}>
+                Cancelar
+              </button>
+
+              <button style={styles.btnSave} onClick={handleUpdate} disabled={savingEdit}>
+                {savingEdit ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
