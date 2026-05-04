@@ -97,4 +97,12 @@ export const deleteDebt = id => api.delete(`/debts/${id}`)
 // ========================
 export const getDashboardSummary = () => api.get('/dashboard/summary')
 
+// ========================
+// RESERVAS (COFRINHO)
+// ========================
+export const getReserves = () => api.get('/reserves')
+export const createReserve = data => api.post('/reserves', data)
+export const depositReserve = (id, valor) => api.post(`/reserves/${id}/deposit?valor=${valor}`)
+export const withdrawReserve = (id, valor) => api.post(`/reserves/${id}/withdraw?valor=${valor}`)
+
 export default api
