@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTransactions, updateTransaction } from '../../services/api'
+import { getTransactions, updateTransaction, deleteTransaction } from '../../services/api'
 
 const categories = ['Todas', '🛒 Alimentação', '🚗 Transporte', '🏠 Moradia', '🎬 Lazer', '💊 Saúde', '💼 Trabalho']
 const periods    = ['Semana', 'Mês', 'Ano']
@@ -12,8 +12,10 @@ export default function Transactions({ onAddTx }) {
   const [loading, setLoading]           = useState(true)
   const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768)
 
-  const [editing, setEditing]           = useState(null)
-  const [editForm, setEditForm]         = useState({
+  const [editing, setEditing] = useState(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+
+  const [editForm, setEditForm] = useState({
     descricao: '',
     valor: '',
     tipo: 'DESPESA',
@@ -21,12 +23,11 @@ export default function Transactions({ onAddTx }) {
     data: '',
     origem: 'manual',
   })
-  const [savingEdit, setSavingEdit]     = useState(false)
 
   async function loadTransactions() {
     try {
       const res = await getTransactions()
-      setTransactions(res.data)
+      setTransactions(res.data || [])
     } catch (err) {
       console.error('Erro ao carregar transações:', err)
     } finally {
@@ -104,7 +105,7 @@ export default function Transactions({ onAddTx }) {
     if (!editing) return
 
     if (!editForm.descricao || !editForm.valor || !editForm.tipo || !editForm.categoria || !editForm.data) {
-      alert('Preencha todos os campos da transação.')
+      alert('Preencha todos os campos.')
       return
     }
 
@@ -124,317 +125,65 @@ export default function Transactions({ onAddTx }) {
       closeEdit()
     } catch (err) {
       console.error('Erro ao editar transação:', err)
-      alert('Erro ao salvar alteração da transação.')
+      alert('Erro ao salvar alteração.')
     } finally {
       setSavingEdit(false)
     }
   }
 
+  async function handleDelete(id) {
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir esta transação?')
+
+    if (!confirmDelete) return
+
+    try {
+      await deleteTransaction(id)
+      await loadTransactions()
+    } catch (err) {
+      console.error('Erro ao excluir transação:', err)
+      alert('Erro ao excluir transação.')
+    }
+  }
+
   const styles = {
-    page: {
-      width: '100%',
-      maxWidth: '100%',
-      overflowX: 'hidden',
-    },
-    g3: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)',
-      gap: 16,
-      marginBottom: 20,
-    },
-    statCard: {
-      background: 'var(--card)',
-      border: '1px solid var(--border)',
-      borderRadius: 16,
-      padding: isMobile ? '18px 20px' : '18px 20px',
-      position: 'relative',
-      minWidth: 0,
-      overflow: 'hidden',
-    },
-    statIcon: {
-      fontSize: 20,
-      marginBottom: 10,
-      opacity: 0.6,
-    },
-    statLabel: {
-      fontSize: 11,
-      fontWeight: 600,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      color: 'var(--muted)',
-      marginBottom: 6,
-    },
-    statValue: {
-      fontFamily: 'Syne, sans-serif',
-      fontSize: isMobile ? 22 : 24,
-      fontWeight: 800,
-      letterSpacing: -1,
-      whiteSpace: 'nowrap',
-    },
-    filters: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '240px 170px auto 140px',
-      gap: 10,
-      alignItems: 'center',
-      marginBottom: 16,
-      width: '100%',
-    },
-    searchInput: {
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 9,
-      padding: '9px 13px',
-      color: 'var(--white)',
-      fontSize: 14,
-      outline: 'none',
-      width: '100%',
-      minWidth: 0,
-    },
-    select: {
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 9,
-      padding: '9px 13px',
-      color: 'var(--white)',
-      fontSize: 14,
-      outline: 'none',
-      appearance: 'none',
-      width: '100%',
-      minWidth: 0,
-    },
-    tabs: {
-      display: 'flex',
-      gap: 3,
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 9,
-      padding: 3,
-      width: isMobile ? '100%' : 'fit-content',
-    },
-    tab: {
-      padding: '6px 14px',
-      borderRadius: 7,
-      fontSize: 13,
-      cursor: 'pointer',
-      color: 'var(--muted)',
-      flex: isMobile ? 1 : 'unset',
-      textAlign: 'center',
-    },
-    tabActive: {
-      background: 'var(--blue)',
-      color: '#fff',
-      fontWeight: 600,
-    },
-    btnAdd: {
-      background: 'var(--blue)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 9,
-      padding: '9px 18px',
-      fontSize: 13,
-      fontWeight: 600,
-      cursor: 'pointer',
-      width: isMobile ? '100%' : 'auto',
-    },
-    card: {
-      background: 'var(--card)',
-      border: '1px solid var(--border)',
-      borderRadius: 16,
-      padding: isMobile ? '8px 14px' : '8px 16px',
-      width: '100%',
-      maxWidth: '100%',
-      minWidth: 0,
-      overflow: 'hidden',
-    },
-    txItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: isMobile ? 10 : 14,
-      padding: '12px 0',
-      minWidth: 0,
-    },
-    txIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 17,
-      flexShrink: 0,
-    },
-    txInfo: {
-      flex: 1,
-      minWidth: 0,
-    },
-    txName: {
-      fontSize: 13,
-      fontWeight: 600,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-    txCat: {
-      fontSize: 11,
-      color: 'var(--muted)',
-      marginTop: 2,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-    txActions: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      flexShrink: 0,
-    },
-    editBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      background: 'rgba(46,99,232,0.12)',
-      border: '1px solid rgba(46,99,232,0.25)',
-      color: 'var(--blue-l)',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 13,
-      flexShrink: 0,
-    },
-    txRight: {
-      textAlign: 'right',
-      flexShrink: 0,
-      maxWidth: isMobile ? 105 : 'none',
-    },
-    txAmount: {
-      fontFamily: 'Syne, sans-serif',
-      fontSize: 14,
-      fontWeight: 700,
-      whiteSpace: 'nowrap',
-    },
-    txDate: {
-      fontSize: 11,
-      color: 'var(--muted)',
-      marginTop: 2,
-      whiteSpace: 'nowrap',
-    },
-    empty: {
-      textAlign: 'center',
-      padding: '48px 24px',
-    },
-    modalOverlay: {
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0,0,0,0.62)',
-      backdropFilter: 'blur(8px)',
-      zIndex: 999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: isMobile ? 14 : 24,
-    },
-    modal: {
-      width: '100%',
-      maxWidth: 520,
-      background: 'var(--card)',
-      border: '1px solid var(--border)',
-      borderRadius: 18,
-      padding: isMobile ? 18 : 24,
-      boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-    },
-    modalHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-      marginBottom: 18,
-    },
-    modalTitle: {
-      fontFamily: 'Syne, sans-serif',
-      fontSize: 17,
-      fontWeight: 800,
-    },
-    closeBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      color: 'var(--muted)',
-      cursor: 'pointer',
-      fontSize: 15,
-    },
-    formGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-      gap: 12,
-    },
-    fieldFull: {
-      gridColumn: '1 / -1',
-    },
-    label: {
-      display: 'block',
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: 0.5,
-      color: 'var(--muted)',
-      textTransform: 'uppercase',
-      marginBottom: 7,
-    },
-    modalInput: {
-      width: '100%',
-      boxSizing: 'border-box',
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 10,
-      padding: '11px 13px',
-      color: 'var(--white)',
-      fontSize: 14,
-      outline: 'none',
-    },
-    modalSelect: {
-      width: '100%',
-      boxSizing: 'border-box',
-      background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 10,
-      padding: '11px 13px',
-      color: 'var(--white)',
-      fontSize: 14,
-      outline: 'none',
-    },
-    modalActions: {
-      display: 'flex',
-      gap: 10,
-      justifyContent: 'flex-end',
-      marginTop: 18,
-      flexDirection: isMobile ? 'column' : 'row',
-    },
-    btnCancel: {
-      background: 'var(--bg3)',
-      color: 'var(--muted)',
-      border: '1px solid var(--border)',
-      borderRadius: 10,
-      padding: '10px 18px',
-      fontSize: 13,
-      fontWeight: 700,
-      cursor: 'pointer',
-      width: isMobile ? '100%' : 'auto',
-    },
-    btnSave: {
-      background: 'var(--blue)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 10,
-      padding: '10px 18px',
-      fontSize: 13,
-      fontWeight: 700,
-      cursor: savingEdit ? 'not-allowed' : 'pointer',
-      opacity: savingEdit ? 0.75 : 1,
-      width: isMobile ? '100%' : 'auto',
-      boxShadow: '0 0 20px rgba(46,99,232,0.25)',
-    },
+    page: { width: '100%', maxWidth: '100%', overflowX: 'hidden' },
+    g3: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 16, marginBottom: 20 },
+    statCard: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? '18px 20px' : '18px 20px', position: 'relative', minWidth: 0, overflow: 'hidden' },
+    statIcon: { fontSize: 20, marginBottom: 10, opacity: 0.6 },
+    statLabel: { fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 },
+    statValue: { fontFamily: 'Syne, sans-serif', fontSize: isMobile ? 22 : 24, fontWeight: 800, letterSpacing: -1, whiteSpace: 'nowrap' },
+    filters: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '240px 170px auto 140px', gap: 10, alignItems: 'center', marginBottom: 16, width: '100%' },
+    searchInput: { background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 13px', color: 'var(--white)', fontSize: 14, outline: 'none', width: '100%', minWidth: 0 },
+    select: { background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 13px', color: 'var(--white)', fontSize: 14, outline: 'none', appearance: 'none', width: '100%', minWidth: 0 },
+    tabs: { display: 'flex', gap: 3, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 9, padding: 3, width: isMobile ? '100%' : 'fit-content' },
+    tab: { padding: '6px 14px', borderRadius: 7, fontSize: 13, cursor: 'pointer', color: 'var(--muted)', flex: isMobile ? 1 : 'unset', textAlign: 'center' },
+    tabActive: { background: 'var(--blue)', color: '#fff', fontWeight: 600 },
+    btnAdd: { background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', width: isMobile ? '100%' : 'auto' },
+    card: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? '8px 14px' : '8px 16px', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' },
+    txItem: { display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 14, padding: '12px 0', minWidth: 0 },
+    txIcon: { width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 },
+    txInfo: { flex: 1, minWidth: 0 },
+    txName: { fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    txCat: { fontSize: 11, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    txRight: { textAlign: 'right', flexShrink: 0, maxWidth: isMobile ? 105 : 'none' },
+    txAmount: { fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' },
+    txDate: { fontSize: 11, color: 'var(--muted)', marginTop: 2, whiteSpace: 'nowrap' },
+    txActions: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
+    actionBtn: { width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 },
+    empty: { textAlign: 'center', padding: '48px 24px' },
+    modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 14 : 24 },
+    modal: { width: '100%', maxWidth: 520, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 18, padding: isMobile ? 18 : 24 },
+    modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+    modalTitle: { fontFamily: 'Syne, sans-serif', fontSize: 17, fontWeight: 800 },
+    closeBtn: { width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--muted)', cursor: 'pointer' },
+    formGrid: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 },
+    fieldFull: { gridColumn: '1 / -1' },
+    label: { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 7 },
+    modalInput: { width: '100%', boxSizing: 'border-box', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '11px 13px', color: 'var(--white)', fontSize: 14, outline: 'none' },
+    modalSelect: { width: '100%', boxSizing: 'border-box', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '11px 13px', color: 'var(--white)', fontSize: 14, outline: 'none' },
+    modalActions: { display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18, flexDirection: isMobile ? 'column' : 'row' },
+    btnCancel: { background: 'var(--bg3)', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', width: isMobile ? '100%' : 'auto' },
+    btnSave: { background: 'var(--blue)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 700, cursor: savingEdit ? 'not-allowed' : 'pointer', opacity: savingEdit ? 0.75 : 1, width: isMobile ? '100%' : 'auto' },
   }
 
   if (loading) return (
@@ -463,12 +212,7 @@ export default function Transactions({ onAddTx }) {
       </div>
 
       <div style={styles.filters}>
-        <input
-          style={styles.searchInput}
-          placeholder="🔍 Buscar transação…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <input style={styles.searchInput} placeholder="🔍 Buscar transação…" value={search} onChange={e => setSearch(e.target.value)} />
 
         <select style={styles.select} value={cat} onChange={e => setCat(e.target.value)}>
           {categories.map(c => <option key={c}>{c}</option>)}
@@ -476,11 +220,7 @@ export default function Transactions({ onAddTx }) {
 
         <div style={styles.tabs}>
           {periods.map(p => (
-            <div
-              key={p}
-              style={{ ...styles.tab, ...(period === p ? styles.tabActive : {}) }}
-              onClick={() => setPeriod(p)}
-            >
+            <div key={p} style={{ ...styles.tab, ...(period === p ? styles.tabActive : {}) }} onClick={() => setPeriod(p)}>
               {p}
             </div>
           ))}
@@ -516,13 +256,8 @@ export default function Transactions({ onAddTx }) {
                 </div>
 
                 <div style={styles.txActions}>
-                  <button
-                    style={styles.editBtn}
-                    onClick={() => openEdit(t)}
-                    title="Editar transação"
-                  >
-                    ✏️
-                  </button>
+                  <button style={styles.actionBtn} onClick={() => openEdit(t)}>✏️</button>
+                  <button style={styles.actionBtn} onClick={() => handleDelete(t.id)}>🗑️</button>
 
                   <div style={styles.txRight}>
                     <div style={{ ...styles.txAmount, color: isNeg ? 'var(--red)' : 'var(--accent)' }}>
@@ -548,32 +283,17 @@ export default function Transactions({ onAddTx }) {
             <div style={styles.formGrid}>
               <div style={styles.fieldFull}>
                 <label style={styles.label}>Descrição</label>
-                <input
-                  style={styles.modalInput}
-                  value={editForm.descricao}
-                  onChange={e => setEditField('descricao', e.target.value)}
-                  placeholder="Ex: mercado"
-                />
+                <input style={styles.modalInput} value={editForm.descricao} onChange={e => setEditField('descricao', e.target.value)} />
               </div>
 
               <div>
                 <label style={styles.label}>Valor</label>
-                <input
-                  style={styles.modalInput}
-                  type="number"
-                  value={editForm.valor}
-                  onChange={e => setEditField('valor', e.target.value)}
-                  placeholder="0,00"
-                />
+                <input style={styles.modalInput} type="number" value={editForm.valor} onChange={e => setEditField('valor', e.target.value)} />
               </div>
 
               <div>
                 <label style={styles.label}>Tipo</label>
-                <select
-                  style={styles.modalSelect}
-                  value={editForm.tipo}
-                  onChange={e => setEditField('tipo', e.target.value)}
-                >
+                <select style={styles.modalSelect} value={editForm.tipo} onChange={e => setEditField('tipo', e.target.value)}>
                   <option value="DESPESA">Despesa</option>
                   <option value="RECEITA">Receita</option>
                 </select>
@@ -581,30 +301,17 @@ export default function Transactions({ onAddTx }) {
 
               <div>
                 <label style={styles.label}>Categoria</label>
-                <input
-                  style={styles.modalInput}
-                  value={editForm.categoria}
-                  onChange={e => setEditField('categoria', e.target.value)}
-                  placeholder="Ex: Alimentação"
-                />
+                <input style={styles.modalInput} value={editForm.categoria} onChange={e => setEditField('categoria', e.target.value)} />
               </div>
 
               <div>
                 <label style={styles.label}>Data</label>
-                <input
-                  style={styles.modalInput}
-                  type="date"
-                  value={editForm.data}
-                  onChange={e => setEditField('data', e.target.value)}
-                />
+                <input style={styles.modalInput} type="date" value={editForm.data} onChange={e => setEditField('data', e.target.value)} />
               </div>
             </div>
 
             <div style={styles.modalActions}>
-              <button style={styles.btnCancel} onClick={closeEdit}>
-                Cancelar
-              </button>
-
+              <button style={styles.btnCancel} onClick={closeEdit}>Cancelar</button>
               <button style={styles.btnSave} onClick={saveEdit} disabled={savingEdit}>
                 {savingEdit ? 'Salvando...' : 'Salvar alterações'}
               </button>
