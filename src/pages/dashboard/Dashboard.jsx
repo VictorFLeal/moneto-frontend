@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api, { getSummary, getTransactions } from '../../services/api'
+import api, { getSummary, getTransactions, getReserves } from '../../services/api'
 
 const budgetColors = {
   Alimentação: 'var(--accent)',
@@ -30,6 +30,7 @@ export default function Dashboard({ onAddTx = () => {} }) {
   const [summary, setSummary]           = useState({ receitas: 0, despesas: 0, saldo: 0 })
   const [transactions, setTransactions] = useState([])
   const [budgets, setBudgets]           = useState([])
+  const [reserves, setReserves]         = useState([])
   const [loading, setLoading]           = useState(true)
   const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768)
 
@@ -42,10 +43,11 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
     async function load() {
       try {
-        const [sumRes, txRes, settingsRes] = await Promise.all([
+        const [sumRes, txRes, settingsRes, reservesRes] = await Promise.all([
           getSummary(),
           getTransactions(),
           api.get('/settings'),
+          getReserves(),
         ])
 
         const allTransactions = txRes.data || []
@@ -53,6 +55,7 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
         setSummary(sumRes.data)
         setTransactions(allTransactions.slice(0, 5))
+        setReserves(reservesRes.data || [])
 
         const budgetsFormatados = Object.entries(orcamentos)
           .filter(([_, limite]) => Number(limite) > 0)
@@ -84,11 +87,17 @@ export default function Dashboard({ onAddTx = () => {} }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  const totalReservado = reserves.reduce(
+    (total, r) => total + Number(r.valorAtual || 0),
+    0
+  )
+
   const stats = [
     { label: 'Saldo atual',    value: summary.saldo,    change: 'Saldo disponível',    up: summary.saldo >= 0,    icon: '💰', glow: 'rgba(46,99,232,0.25)' },
     { label: 'Receitas',       value: summary.receitas, change: 'Total de entradas',    up: true,                  icon: '📥', glow: 'rgba(74,240,196,0.2)' },
     { label: 'Despesas',       value: summary.despesas, change: 'Total de saídas',      up: false,                 icon: '📤', glow: 'rgba(240,106,106,0.2)' },
     { label: 'Economia',       value: summary.saldo,    change: summary.saldo >= 0 ? '✓ Positivo!' : '⚠ Atenção', up: summary.saldo >= 0, icon: '🎯', glow: 'rgba(240,168,74,0.2)' },
+    { label: 'Reservas',       value: totalReservado,   change: 'Dinheiro guardado',    up: true,                  icon: '💰', glow: 'rgba(74,240,196,0.2)' },
   ]
 
   function formatVal(val) {
@@ -391,6 +400,48 @@ export default function Dashboard({ onAddTx = () => {} }) {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Cofrinho MONETO */}
+          <div style={styles.card}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionTitle}>💰 Cofrinho MONETO</span>
+              <span
+                style={styles.sectionAction}
+                onClick={() => navigate('/dashboard/reservas')}
+              >
+                Ver →
+              </span>
+            </div>
+
+            {reserves.length === 0 ? (
+              <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
+                Nenhuma reserva ainda.
+              </p>
+            ) : (
+              reserves.map(r => (
+                <div key={r.id} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, gap: 10 }}>
+                    <span style={{ fontSize: 13 }}>{r.nome}</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                      R${formatBudgetVal(r.valorAtual)}
+                    </span>
+                  </div>
+
+                  {r.meta && (
+                    <div style={styles.progBar}>
+                      <div
+                        style={{
+                          ...styles.progFill,
+                          width: `${Math.min((Number(r.valorAtual || 0) / Number(r.meta || 1)) * 100, 100)}%`,
+                          background: 'var(--accent)'
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Orçamento */}

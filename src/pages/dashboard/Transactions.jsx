@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTransactions } from '../../services/api'
+import { getTransactions, updateTransaction } from '../../services/api'
 
 const categories = ['Todas', '🛒 Alimentação', '🚗 Transporte', '🏠 Moradia', '🎬 Lazer', '💊 Saúde', '💼 Trabalho']
 const periods    = ['Semana', 'Mês', 'Ano']
@@ -12,25 +12,35 @@ export default function Transactions({ onAddTx }) {
   const [loading, setLoading]           = useState(true)
   const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768)
 
+  const [editing, setEditing]           = useState(null)
+  const [editForm, setEditForm]         = useState({
+    descricao: '',
+    valor: '',
+    tipo: 'DESPESA',
+    categoria: '',
+    data: '',
+    origem: 'manual',
+  })
+  const [savingEdit, setSavingEdit]     = useState(false)
+
+  async function loadTransactions() {
+    try {
+      const res = await getTransactions()
+      setTransactions(res.data)
+    } catch (err) {
+      console.error('Erro ao carregar transações:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     function handleResize() {
       setIsMobile(window.innerWidth <= 768)
     }
 
     window.addEventListener('resize', handleResize)
-
-    async function load() {
-      try {
-        const res = await getTransactions()
-        setTransactions(res.data)
-      } catch (err) {
-        console.error('Erro ao carregar transações:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    load()
+    loadTransactions()
 
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -60,6 +70,64 @@ export default function Transactions({ onAddTx }) {
   function getTxStyle(cat) {
     const key = Object.keys(catIcon).find(k => cat?.includes(k)) || 'Outros'
     return catIcon[key]
+  }
+
+  function openEdit(t) {
+    setEditing(t)
+    setEditForm({
+      descricao: t.descricao || '',
+      valor: t.valor || '',
+      tipo: t.tipo || 'DESPESA',
+      categoria: t.categoria || '',
+      data: t.data || '',
+      origem: t.origem || 'manual',
+    })
+  }
+
+  function closeEdit() {
+    setEditing(null)
+    setEditForm({
+      descricao: '',
+      valor: '',
+      tipo: 'DESPESA',
+      categoria: '',
+      data: '',
+      origem: 'manual',
+    })
+  }
+
+  function setEditField(field, value) {
+    setEditForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  async function saveEdit() {
+    if (!editing) return
+
+    if (!editForm.descricao || !editForm.valor || !editForm.tipo || !editForm.categoria || !editForm.data) {
+      alert('Preencha todos os campos da transação.')
+      return
+    }
+
+    setSavingEdit(true)
+
+    try {
+      await updateTransaction(editing.id, {
+        descricao: editForm.descricao,
+        valor: Number(editForm.valor),
+        tipo: editForm.tipo,
+        categoria: editForm.categoria,
+        data: editForm.data,
+        origem: editForm.origem || 'manual',
+      })
+
+      await loadTransactions()
+      closeEdit()
+    } catch (err) {
+      console.error('Erro ao editar transação:', err)
+      alert('Erro ao salvar alteração da transação.')
+    } finally {
+      setSavingEdit(false)
+    }
   }
 
   const styles = {
@@ -214,6 +282,26 @@ export default function Transactions({ onAddTx }) {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     },
+    txActions: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 0,
+    },
+    editBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      background: 'rgba(46,99,232,0.12)',
+      border: '1px solid rgba(46,99,232,0.25)',
+      color: 'var(--blue-l)',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 13,
+      flexShrink: 0,
+    },
     txRight: {
       textAlign: 'right',
       flexShrink: 0,
@@ -234,6 +322,118 @@ export default function Transactions({ onAddTx }) {
     empty: {
       textAlign: 'center',
       padding: '48px 24px',
+    },
+    modalOverlay: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.62)',
+      backdropFilter: 'blur(8px)',
+      zIndex: 999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? 14 : 24,
+    },
+    modal: {
+      width: '100%',
+      maxWidth: 520,
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: 18,
+      padding: isMobile ? 18 : 24,
+      boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+    },
+    modalHeader: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginBottom: 18,
+    },
+    modalTitle: {
+      fontFamily: 'Syne, sans-serif',
+      fontSize: 17,
+      fontWeight: 800,
+    },
+    closeBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      color: 'var(--muted)',
+      cursor: 'pointer',
+      fontSize: 15,
+    },
+    formGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      gap: 12,
+    },
+    fieldFull: {
+      gridColumn: '1 / -1',
+    },
+    label: {
+      display: 'block',
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 0.5,
+      color: 'var(--muted)',
+      textTransform: 'uppercase',
+      marginBottom: 7,
+    },
+    modalInput: {
+      width: '100%',
+      boxSizing: 'border-box',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '11px 13px',
+      color: 'var(--white)',
+      fontSize: 14,
+      outline: 'none',
+    },
+    modalSelect: {
+      width: '100%',
+      boxSizing: 'border-box',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '11px 13px',
+      color: 'var(--white)',
+      fontSize: 14,
+      outline: 'none',
+    },
+    modalActions: {
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end',
+      marginTop: 18,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    btnCancel: {
+      background: 'var(--bg3)',
+      color: 'var(--muted)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '10px 18px',
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: 'pointer',
+      width: isMobile ? '100%' : 'auto',
+    },
+    btnSave: {
+      background: 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: '10px 18px',
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: savingEdit ? 'not-allowed' : 'pointer',
+      opacity: savingEdit ? 0.75 : 1,
+      width: isMobile ? '100%' : 'auto',
+      boxShadow: '0 0 20px rgba(46,99,232,0.25)',
     },
   }
 
@@ -315,17 +515,113 @@ export default function Transactions({ onAddTx }) {
                   <div style={styles.txCat}>{t.categoria} · {t.origem === 'whatsapp' ? '📱 WhatsApp' : '✏️ Manual'}</div>
                 </div>
 
-                <div style={styles.txRight}>
-                  <div style={{ ...styles.txAmount, color: isNeg ? 'var(--red)' : 'var(--accent)' }}>
-                    {isNeg ? '−' : '+'}R${Math.abs(Number(t.valor)).toFixed(2).replace('.', ',')}
+                <div style={styles.txActions}>
+                  <button
+                    style={styles.editBtn}
+                    onClick={() => openEdit(t)}
+                    title="Editar transação"
+                  >
+                    ✏️
+                  </button>
+
+                  <div style={styles.txRight}>
+                    <div style={{ ...styles.txAmount, color: isNeg ? 'var(--red)' : 'var(--accent)' }}>
+                      {isNeg ? '−' : '+'}R${Math.abs(Number(t.valor)).toFixed(2).replace('.', ',')}
+                    </div>
+                    <div style={styles.txDate}>{t.data}</div>
                   </div>
-                  <div style={styles.txDate}>{t.data}</div>
                 </div>
               </div>
             )
           })
         )}
       </div>
+
+      {editing && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>Editar transação</div>
+              <button style={styles.closeBtn} onClick={closeEdit}>✕</button>
+            </div>
+
+            <div style={styles.formGrid}>
+              <div style={styles.fieldFull}>
+                <label style={styles.label}>Descrição</label>
+                <input
+                  style={styles.modalInput}
+                  value={editForm.descricao}
+                  onChange={e => setEditField('descricao', e.target.value)}
+                  placeholder="Ex: mercado"
+                />
+              </div>
+
+              <div>
+                <label style={styles.label}>Valor</label>
+                <input
+                  style={styles.modalInput}
+                  type="number"
+                  value={editForm.valor}
+                  onChange={e => setEditField('valor', e.target.value)}
+                  placeholder="0,00"
+                />
+              </div>
+
+              <div>
+                <label style={styles.label}>Tipo</label>
+                <select
+                  style={styles.modalSelect}
+                  value={editForm.tipo}
+                  onChange={e => setEditField('tipo', e.target.value)}
+                >
+                  <option value="DESPESA">Despesa</option>
+                  <option value="RECEITA">Receita</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={styles.label}>Categoria</label>
+                <input
+                  style={styles.modalInput}
+                  value={editForm.categoria}
+                  onChange={e => setEditField('categoria', e.target.value)}
+                  placeholder="Ex: Alimentação"
+                />
+              </div>
+
+              <div>
+                <label style={styles.label}>Data</label>
+                <input
+                  style={styles.modalInput}
+                  type="date"
+                  value={editForm.data}
+                  onChange={e => setEditField('data', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div style={styles.modalActions}>
+              <button style={styles.btnCancel} onClick={closeEdit}>
+                Cancelar
+              </button>
+
+              <button style={styles.btnSave} onClick={saveEdit} disabled={savingEdit}>
+                {savingEdit ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none }
+        input::placeholder { color: rgba(122,154,191,0.35) !important }
+        input:focus, select:focus {
+          border-color: rgba(46,99,232,0.45) !important;
+          box-shadow: 0 0 0 3px rgba(46,99,232,0.1) !important;
+          outline: none !important;
+        }
+      `}</style>
     </div>
   )
 }
