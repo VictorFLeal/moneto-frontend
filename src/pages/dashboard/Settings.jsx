@@ -384,6 +384,10 @@ export default function Settings() {
     )
   }
 
+  function isDefaultBudget(categoria) {
+    return BUDGET_CATS.includes(categoria)
+  }
+
   async function updateBudgetItem(item) {
     if (!item?.id) return
 
@@ -450,12 +454,14 @@ export default function Settings() {
   }
 
   async function deleteBudgetItem(id) {
-    if (!window.confirm('Deseja excluir este orçamento?')) return
+    const budget = budgetItems.find(item => item.id === id)
+
+    if (!window.confirm(isDefaultBudget(budget?.categoria) ? 'Esta é uma categoria padrão. O limite será zerado. Deseja continuar?' : 'Deseja excluir este orçamento?')) return
 
     try {
       await api.delete(`/budgets/${id}`)
       await loadBudgets()
-      showToast('Orçamento excluído com sucesso!')
+      showToast(isDefaultBudget(budget?.categoria) ? 'Limite zerado com sucesso!' : 'Orçamento excluído com sucesso!')
     } catch (err) {
       console.error('Erro ao excluir orçamento:', err)
       showToast(err.response?.data?.error || 'Erro ao excluir orçamento.', 'error')

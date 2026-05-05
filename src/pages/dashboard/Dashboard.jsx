@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api, { getSummary, getTransactions, getReserves } from '../../services/api'
+import api, { getSummary, getTransactions, getReserves, getBudgets } from '../../services/api'
 
 const budgetColors = {
   Alimentação: 'var(--accent)',
@@ -43,23 +43,25 @@ export default function Dashboard({ onAddTx = () => {} }) {
 
     async function load() {
       try {
-        const [sumRes, txRes, settingsRes, reservesRes] = await Promise.all([
+        const [sumRes, txRes, reservesRes, budgetsRes] = await Promise.all([
           getSummary(),
           getTransactions(),
-          api.get('/settings'),
           getReserves(),
+          getBudgets(),
         ])
 
         const allTransactions = txRes.data || []
-        const orcamentos = settingsRes.data?.orcamentos || {}
+        const budgetsData = budgetsRes.data || []
 
         setSummary(sumRes.data)
         setTransactions(allTransactions.slice(0, 5))
         setReserves(reservesRes.data || [])
 
-        const budgetsFormatados = Object.entries(orcamentos)
-          .filter(([_, limite]) => Number(limite) > 0)
-          .map(([categoria, limite]) => {
+        const budgetsFormatados = budgetsData
+          .filter(b => Number(b.limite || 0) > 0)
+          .map(b => {
+            const categoria = b.categoria
+
             const gasto = allTransactions
               .filter(t => t.tipo === 'DESPESA' && t.categoria === categoria)
               .reduce((total, t) => total + Number(t.valor || 0), 0)
@@ -67,9 +69,10 @@ export default function Dashboard({ onAddTx = () => {} }) {
             const info = catIcon[categoria] || catIcon.Outros
 
             return {
+              id: b.id,
               label: `${info.icon} ${categoria}`,
               cur: gasto,
-              max: Number(limite),
+              max: Number(b.limite || 0),
               color: budgetColors[categoria] || 'var(--blue-l)',
             }
           })
