@@ -987,7 +987,7 @@ export default function Settings() {
           {active === 'orcamento' && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1.08fr',
+              gridTemplateColumns: isMobile ? '1fr' : '1.45fr 0.85fr',
               gap: 18,
               alignItems: 'start',
             }}
@@ -1108,7 +1108,7 @@ export default function Settings() {
                     <div key={budget.id || i}>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr' : '1fr 150px 38px',
+                        gridTemplateColumns: isMobile ? '1fr' : 'minmax(120px, 1fr) 150px 38px',
                         alignItems: 'center',
                         padding: '13px 0',
                         gap: 10,
