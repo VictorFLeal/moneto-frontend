@@ -987,8 +987,8 @@ export default function Settings() {
           {active === 'orcamento' && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1.45fr 0.85fr',
-              gap: 18,
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+              gap: 24,
               alignItems: 'start',
             }}
             >
