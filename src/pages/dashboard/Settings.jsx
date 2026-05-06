@@ -30,7 +30,17 @@ const NAV = [
   { id: 'logout',        label: 'Sair da conta',  icon: icons.logout, danger: true },
 ]
 
-const BUDGET_CATS = ['Alimentação', 'Transporte', 'Moradia', 'Saúde', 'Educação', 'Lazer', 'Outros']
+const BUDGET_CATS = [
+  'Alimentação',
+  'Transporte',
+  'Moradia',
+  'Saúde',
+  'Educação',
+  'Lazer',
+  'Tecnologia',
+  'Vestuário',
+  'Outros'
+]
 
 function Toggle({ checked, onChange }) {
   return (
@@ -227,7 +237,7 @@ function SaveButton({ onClick, loading, label = 'Salvar alterações', isMobile 
 }
 
 function Divider() {
-  return <div style={{ height: 1, background: 'rgba(91,139,245,0.08)', margin: '18px 0' }} />
+  return <div style={{ height: 1, background: 'rgba(91,139,245,0.08)', margin: '14px 0' }} />
 }
 
 export default function Settings() {
@@ -236,6 +246,7 @@ export default function Settings() {
   const [active, setActive] = useState('perfil')
   const [data, setData] = useState(null)
   const [plans, setPlans] = useState([])
+  const [categories, setCategories] = useState([])
   const [budgetItems, setBudgetItems] = useState([])
   const [newBudgetCategory, setNewBudgetCategory] = useState('')
   const [newBudgetLimit, setNewBudgetLimit] = useState('')
@@ -276,18 +287,30 @@ export default function Settings() {
     }
   }
 
+  async function loadCategories() {
+    try {
+      const res = await api.get('/categories')
+      setCategories(res.data || [])
+    } catch (err) {
+      console.error('Erro ao carregar categorias:', err)
+      setCategories([])
+    }
+  }
+
   useEffect(() => {
     async function load() {
       try {
-        const [settingsRes, plansRes, budgetsRes] = await Promise.all([
+        const [settingsRes, plansRes, budgetsRes, categoriesRes] = await Promise.all([
           api.get('/settings'),
           api.get('/plans').catch(() => ({ data: [] })),
           api.get('/budgets').catch(() => ({ data: [] })),
+          api.get('/categories').catch(() => ({ data: [] })),
         ])
 
         setData(settingsRes.data)
         setPlans(plansRes.data)
         setBudgetItems(budgetsRes.data || [])
+        setCategories(categoriesRes.data || [])
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
           navigate('/login')
@@ -384,8 +407,21 @@ export default function Settings() {
     )
   }
 
+  function getBudgetCategoryOptions() {
+    const fromBackend = categories
+      .filter(c => String(c.tipo || '').toUpperCase() === 'DESPESA')
+      .map(c => c.nome)
+
+    const all = [...BUDGET_CATS, ...fromBackend, ...budgetItems.map(b => b.categoria)]
+      .filter(Boolean)
+      .map(c => String(c).trim())
+      .filter(Boolean)
+
+    return [...new Set(all)]
+  }
+
   function isDefaultBudget(categoria) {
-    return BUDGET_CATS.includes(categoria)
+    return BUDGET_CATS.some(cat => cat.toLowerCase() === String(categoria || '').toLowerCase())
   }
 
   async function updateBudgetItem(item) {
@@ -410,6 +446,7 @@ export default function Settings() {
         icone: item.icone || null,
       })
 
+      await loadCategories()
       showToast('Orçamento atualizado com sucesso!')
     } catch (err) {
       console.error('Erro ao atualizar orçamento:', err)
@@ -444,6 +481,7 @@ export default function Settings() {
       setNewBudgetCategory('')
       setNewBudgetLimit('')
       await loadBudgets()
+      await loadCategories()
       showToast('Orçamento criado com sucesso!')
     } catch (err) {
       console.error('Erro ao criar orçamento:', err)
@@ -461,6 +499,7 @@ export default function Settings() {
     try {
       await api.delete(`/budgets/${id}`)
       await loadBudgets()
+      await loadCategories()
       showToast(isDefaultBudget(budget?.categoria) ? 'Limite zerado com sucesso!' : 'Orçamento excluído com sucesso!')
     } catch (err) {
       console.error('Erro ao excluir orçamento:', err)
@@ -492,13 +531,14 @@ export default function Settings() {
 
   const notif = data?.notificacoes || {}
   const curPlan = plans.find(p => p.planId === data?.plano)
+  const budgetCategoryOptions = getBudgetCategoryOptions()
 
   return (
     <div style={{
       display: 'grid',
       gridTemplateColumns: isMobile ? '1fr' : '210px 1fr',
       gap: isMobile ? 14 : 20,
-      maxWidth: isMobile ? '100%' : 900,
+      maxWidth: isMobile ? '100%' : 1100,
       width: '100%',
       overflowX: 'hidden',
     }}>
@@ -793,8 +833,9 @@ export default function Settings() {
                       outline: 'none',
                     }}
                   />
+
                   <datalist id="budget-categories">
-                    {BUDGET_CATS.map(cat => <option key={cat} value={cat} />)}
+                    {budgetCategoryOptions.map(cat => <option key={cat} value={cat} />)}
                   </datalist>
                 </div>
 
@@ -845,9 +886,15 @@ export default function Settings() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+              columnGap: 24,
+              rowGap: 0,
+            }}>
               {budgetItems.length === 0 ? (
                 <div style={{
+                  gridColumn: '1 / -1',
                   textAlign: 'center',
                   padding: '34px 20px',
                   color: 'var(--muted)',
@@ -863,7 +910,7 @@ export default function Settings() {
                   <div key={budget.id || i}>
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr' : '1fr 150px 40px',
+                      gridTemplateColumns: isMobile ? '1fr' : '1fr 130px 38px',
                       alignItems: 'center',
                       padding: '13px 0',
                       gap: 10,
@@ -928,7 +975,9 @@ export default function Settings() {
                         🗑️
                       </button>
                     </div>
-                    {i < budgetItems.length - 1 && <Divider />}
+
+                    {!isMobile && i < budgetItems.length - 2 && <Divider />}
+                    {isMobile && i < budgetItems.length - 1 && <Divider />}
                   </div>
                 ))
               )}
