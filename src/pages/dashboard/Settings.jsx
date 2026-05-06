@@ -1198,7 +1198,7 @@ export default function Settings() {
               }}>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 130px 150px',
+                  gridTemplateColumns: '1fr',
                   gap: 10,
                   alignItems: 'end',
                   marginBottom: 10,
@@ -1275,7 +1275,7 @@ export default function Settings() {
 
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 110px auto',
+                  gridTemplateColumns: '1fr 90px',
                   gap: 10,
                   alignItems: 'end',
                 }}>
@@ -1339,7 +1339,8 @@ export default function Settings() {
                       cursor: savingIncome ? 'not-allowed' : 'pointer',
                       opacity: savingIncome ? 0.7 : 1,
                       boxShadow: '0 0 20px rgba(46,99,232,0.25)',
-                      width: isMobile ? '100%' : 'fit-content',
+                      width: '100%',
+                      gridColumn: '1 / -1',
                     }}
                   >
                     {savingIncome ? 'Criando...' : '+ Adicionar'}
