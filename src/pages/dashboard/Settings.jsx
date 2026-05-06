@@ -1670,7 +1670,21 @@ export default function Settings() {
         @keyframes slideUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none }
         input::placeholder { color: rgba(122,154,191,0.35) !important }
-        input:focus, select:focus { border-color: rgba(46,99,232,0.45) !important; box-shadow: 0 0 0 3px rgba(46,99,232,0.1) !important; outline: none !important }
+        input:focus, select:focus {
+            border-color: rgba(46,99,232,0.45) !important;
+            box-shadow: 0 0 0 3px rgba(46,99,232,0.1) !important;
+            outline: none !important;
+          }
+
+          select {
+            background-color: rgba(255,255,255,0.04) !important;
+            color: var(--white) !important;
+          }
+
+          select option {
+            background-color: #0f1328 !important;
+            color: #f0f6ff !important;
+          }
       `}</style>
     </div>
   )
