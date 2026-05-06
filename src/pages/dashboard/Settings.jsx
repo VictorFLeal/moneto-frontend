@@ -987,7 +987,7 @@ export default function Settings() {
           {active === 'orcamento' && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+              gridTemplateColumns: isMobile ? '1fr' : '1.15fr 0.85fr',
               gap: 24,
               alignItems: 'start',
             }}
@@ -1182,7 +1182,10 @@ export default function Settings() {
               </div>
             </SectionCard>
 
-            <SectionCard isMobile={isMobile}>
+            <SectionCard
+                isMobile={isMobile}
+                style={{ height: '100%' }}
+              >
               <SectionTitle icon={icons.budget} label="Ganhos mensais fixos" />
 
               <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 22, lineHeight: 1.6 }}>
