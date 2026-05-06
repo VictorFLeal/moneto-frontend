@@ -1366,7 +1366,7 @@ export default function Settings() {
                     <div key={income.id || i}>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr' : '1fr 120px 130px 120px 70px 38px',
+                        gridTemplateColumns: isMobile ? '1fr' : '1fr 130px 150px 140px 90px 38px',
                         alignItems: 'center',
                         padding: '13px 0',
                         gap: 10,
@@ -1462,11 +1462,21 @@ export default function Settings() {
                           style={{
                             height: 34,
                             borderRadius: 9,
-                            background: income.ativo === false ? 'rgba(240,106,106,0.08)' : 'rgba(74,240,196,0.08)',
-                            border: `1px solid ${income.ativo === false ? 'rgba(240,106,106,0.2)' : 'rgba(74,240,196,0.2)'}`,
-                            color: income.ativo === false ? 'var(--red)' : 'var(--accent)',
+                            background: income.ativo === false
+                              ? 'rgba(240,106,106,0.08)'
+                              : 'rgba(74,240,196,0.08)',
+                            border: `1px solid ${
+                              income.ativo === false
+                                ? 'rgba(240,106,106,0.2)'
+                                : 'rgba(74,240,196,0.2)'
+                            }`,
+                            color: income.ativo === false
+                              ? 'var(--red)'
+                              : 'var(--accent)',
                             cursor: 'pointer',
-                            fontSize: 12,
+                            fontSize: 11,
+                            padding: '0 8px',
+                            whiteSpace: 'nowrap',
                             fontWeight: 600,
                           }}
                           title={income.ativo === false ? 'Ativar' : 'Pausar'}
