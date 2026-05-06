@@ -1086,7 +1086,7 @@ export default function Settings() {
 
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
                 columnGap: 24,
                 rowGap: 0,
               }}>
