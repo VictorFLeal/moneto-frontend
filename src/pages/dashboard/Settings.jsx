@@ -728,9 +728,9 @@ export default function Settings() {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '210px 1fr',
+      gridTemplateColumns: isMobile ? '1fr' : '190px 1fr',
       gap: isMobile ? 14 : 20,
-      maxWidth: isMobile ? '100%' : 1100,
+      maxWidth: isMobile ? '100%' : 1500,
       width: '100%',
       overflowX: 'hidden',
     }}>
