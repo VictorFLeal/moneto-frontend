@@ -987,7 +987,7 @@ export default function Settings() {
           {active === 'orcamento' && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1.15fr 0.85fr',
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
               gap: 24,
               alignItems: 'start',
             }}
@@ -1369,7 +1369,7 @@ export default function Settings() {
                     <div key={income.id || i}>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: isMobile ? '1fr' : '1fr 130px 150px 140px 90px 38px',
+                        gridTemplateColumns: isMobile ? '1fr' : '1.2fr 150px 170px 150px 100px 42px',
                         alignItems: 'center',
                         padding: '13px 0',
                         gap: 10,
