@@ -984,9 +984,14 @@ export default function Settings() {
             )}
           </SectionCard>
         )}
-
-        {active === 'orcamento' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {active === 'orcamento' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1.35fr 1fr',
+              gap: 18,
+              alignItems: 'start',
+            }}
+            >
             <SectionCard isMobile={isMobile}>
               <SectionTitle icon={icons.budget} label="Orçamentos mensais" />
 
