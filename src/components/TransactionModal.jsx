@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { createTransaction } from '../services/api'
+import { useState, useEffect } from 'react'
+import api, { createTransaction } from '../services/api'
 
 export default function TransactionModal({ open, onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -9,10 +9,85 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
     cat: 'Alimentação',
     date: new Date().toISOString().split('T')[0]
   })
+
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
+  const [loadingCategories, setLoadingCategories] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+
+    async function loadCategories() {
+      setLoadingCategories(true)
+
+      try {
+        const res = await api.get('/categories')
+        const data = res.data || []
+
+        setCategories(data)
+
+        const tipoAtual = form.type === 'Despesa' ? 'DESPESA' : 'RECEITA'
+        const filtered = data.filter(c => String(c.tipo || '').toUpperCase() === tipoAtual)
+
+        if (filtered.length > 0) {
+          setForm(f => ({
+            ...f,
+            cat: filtered.some(c => c.nome === f.cat) ? f.cat : filtered[0].nome
+          }))
+        }
+      } catch (err) {
+        console.error('Erro ao carregar categorias:', err)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [open])
+
+  useEffect(() => {
+    const tipoAtual = form.type === 'Despesa' ? 'DESPESA' : 'RECEITA'
+    const filtered = categories.filter(c => String(c.tipo || '').toUpperCase() === tipoAtual)
+
+    if (filtered.length > 0 && !filtered.some(c => c.nome === form.cat)) {
+      setForm(f => ({ ...f, cat: filtered[0].nome }))
+    }
+  }, [form.type, categories])
 
   function handle(field, val) {
     setForm(f => ({ ...f, [field]: val }))
+  }
+
+  function getFilteredCategories() {
+    const tipoAtual = form.type === 'Despesa' ? 'DESPESA' : 'RECEITA'
+
+    const filtered = categories.filter(c =>
+      String(c.tipo || '').toUpperCase() === tipoAtual
+    )
+
+    if (filtered.length > 0) {
+      return filtered
+    }
+
+    if (tipoAtual === 'RECEITA') {
+      return [
+        { id: 'salario', nome: 'Salário' },
+        { id: 'freelance', nome: 'Freelance' },
+        { id: 'outros-receita', nome: 'Outros' },
+      ]
+    }
+
+    return [
+      { id: 'alimentacao', nome: 'Alimentação' },
+      { id: 'transporte', nome: 'Transporte' },
+      { id: 'moradia', nome: 'Moradia' },
+      { id: 'lazer', nome: 'Lazer' },
+      { id: 'saude', nome: 'Saúde' },
+      { id: 'educacao', nome: 'Educação' },
+      { id: 'vestuario', nome: 'Vestuário' },
+      { id: 'tecnologia', nome: 'Tecnologia' },
+      { id: 'outros-despesa', nome: 'Outros' },
+    ]
   }
 
   async function handleSave() {
@@ -20,21 +95,29 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
       alert('Preenche valor e descrição!')
       return
     }
+
     setLoading(true)
+
     try {
       await createTransaction({
-        descricao:  form.desc,
-        valor:      parseFloat(form.value),
-        tipo:       form.type === 'Despesa' ? 'DESPESA' : 'RECEITA',
-        categoria:  form.cat,
-        data:       form.date,
-        origem:     'manual',
+        descricao: form.desc,
+        valor: parseFloat(form.value),
+        tipo: form.type === 'Despesa' ? 'DESPESA' : 'RECEITA',
+        categoria: form.cat,
+        data: form.date,
+        origem: 'manual',
       })
+
       setForm({
-        type: 'Despesa', value: '', desc: '',
-        cat: 'Alimentação', date: new Date().toISOString().split('T')[0]
+        type: 'Despesa',
+        value: '',
+        desc: '',
+        cat: 'Alimentação',
+        date: new Date().toISOString().split('T')[0]
       })
+
       onClose()
+
       if (onSuccess) onSuccess()
     } catch {
       alert('Erro ao salvar transação. Verifica se o backend está a correr.')
@@ -44,6 +127,8 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
   }
 
   if (!open) return null
+
+  const filteredCategories = getFilteredCategories()
 
   return (
     <div style={styles.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
@@ -61,6 +146,7 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
               <option>Receita</option>
             </select>
           </Field>
+
           <Field label="VALOR (R$)">
             <input
               style={styles.input}
@@ -84,14 +170,20 @@ export default function TransactionModal({ open, onClose, onSuccess }) {
 
         <div style={styles.row}>
           <Field label="CATEGORIA">
-            <select style={styles.input} value={form.cat} onChange={e => handle('cat', e.target.value)}>
-              {[
-                'Alimentação', 'Transporte', 'Moradia', 'Lazer',
-                'Saúde', 'Educação', 'Vestuário', 'Trabalho',
-                'Tecnologia', 'Salário', 'Freelance', 'Outros'
-              ].map(c => <option key={c}>{c}</option>)}
+            <select
+              style={styles.input}
+              value={form.cat}
+              onChange={e => handle('cat', e.target.value)}
+              disabled={loadingCategories}
+            >
+              {filteredCategories.map(c => (
+                <option key={c.id || c.nome} value={c.nome}>
+                  {c.nome}
+                </option>
+              ))}
             </select>
           </Field>
+
           <Field label="DATA">
             <input
               style={styles.input}
@@ -122,8 +214,12 @@ function Field({ label, children }) {
   return (
     <div style={{ flex: 1 }}>
       <label style={{
-        display: 'block', fontSize: 11, fontWeight: 700,
-        letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 7
+        display: 'block',
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: 0.5,
+        color: 'var(--muted)',
+        marginBottom: 7
       }}>
         {label}
       </label>
@@ -134,50 +230,83 @@ function Field({ label, children }) {
 
 const styles = {
   overlay: {
-    position: 'fixed', inset: 0,
+    position: 'fixed',
+    inset: 0,
     background: 'rgba(3,7,15,0.85)',
     backdropFilter: 'blur(6px)',
     zIndex: 200,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modal: {
     background: 'var(--bg2)',
     border: '1px solid var(--border)',
-    borderRadius: 20, padding: '28px 32px',
-    width: '100%', maxWidth: 460,
+    borderRadius: 20,
+    padding: '28px 32px',
+    width: '100%',
+    maxWidth: 460,
   },
   header: {
-    display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 22,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22,
   },
   title: {
     fontFamily: 'Syne, sans-serif',
-    fontSize: 17, fontWeight: 700,
+    fontSize: 17,
+    fontWeight: 700,
   },
   closeBtn: {
-    width: 30, height: 30, borderRadius: 8,
-    background: 'var(--bg3)', border: '1px solid var(--border)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', fontSize: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: 14,
   },
-  row: { display: 'flex', gap: 12, marginBottom: 0 },
+  row: {
+    display: 'flex',
+    gap: 12,
+    marginBottom: 0
+  },
   input: {
-    width: '100%', background: 'var(--bg3)',
-    border: '1px solid var(--border)', borderRadius: 9,
-    padding: '11px 14px', color: 'var(--white)',
-    fontSize: 14, outline: 'none', appearance: 'none',
+    width: '100%',
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    borderRadius: 9,
+    padding: '11px 14px',
+    color: 'var(--white)',
+    fontSize: 14,
+    outline: 'none',
+    appearance: 'none',
     marginBottom: 14,
   },
   btnPrimary: {
-    flex: 1, background: 'var(--blue)', color: '#fff',
-    border: 'none', borderRadius: 10, padding: 13,
-    fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    flex: 1,
+    background: 'var(--blue)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 10,
+    padding: 13,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
     boxShadow: '0 0 20px rgba(46,99,232,0.3)',
   },
   btnGhost: {
-    flex: 1, background: 'transparent',
-    border: '1px solid var(--border)', borderRadius: 10,
-    padding: 13, color: 'var(--white)',
-    fontSize: 14, cursor: 'pointer',
+    flex: 1,
+    background: 'transparent',
+    border: '1px solid var(--border)',
+    borderRadius: 10,
+    padding: 13,
+    color: 'var(--white)',
+    fontSize: 14,
+    cursor: 'pointer',
   },
 }
